@@ -27,6 +27,7 @@
 		"typescript": "^6.0.3",
 		"vite": "^8.3.8"
 	},
+	"license": "MIT",
 	"main": ".vite/build/main.cjs",
 	"name": "stack",
 	"private": true,
