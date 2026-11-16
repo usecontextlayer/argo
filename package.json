@@ -29,9 +29,9 @@
 	},
 	"license": "MIT",
 	"main": ".vite/build/main.cjs",
-	"name": "stack",
+	"name": "argo",
 	"private": true,
-	"productName": "stack",
+	"productName": "argo",
 	"scripts": {
 		"check": "npm run format.fix && npm run tsc",
 		"format.fix": "biome check --fix --error-on-warnings .",
