@@ -7,9 +7,14 @@
 			}
 		}
 	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!!**/node_modules", "!!**/package-lock.json", "!!**/*.md"]
+		"includes": ["**", "!!**/node_modules", "!!**/pnpm-lock.yaml", "!!**/*.md"]
 	},
 	"formatter": {
 		"attributePosition": "multiline",

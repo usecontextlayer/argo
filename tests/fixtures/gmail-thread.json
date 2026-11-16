@@ -1,0 +1,486 @@
+{
+	"id": "conversation",
+	"messages": [
+		{
+			"historyId": "fixture-historyId",
+			"id": "message-1",
+			"internalDate": "1700000000000",
+			"labelIds": ["INBOX"],
+			"payload": {
+				"body": {
+					"size": 0
+				},
+				"filename": "",
+				"headers": [
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Mime-Version",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Mailer",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Entity-Ref-ID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Date",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Message-Id",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Cc",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Superhuman-ID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Superhuman-Draft-ID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Superhuman-Thread-ID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "From",
+						"value": "Ada <ada@example.test>"
+					},
+					{
+						"name": "Subject",
+						"value": "Café plans"
+					},
+					{
+						"name": "To",
+						"value": "Reader <reader@example.test>"
+					},
+					{
+						"name": "Content-Type",
+						"value": "fixture-header"
+					}
+				],
+				"mimeType": "multipart/alternative",
+				"partId": "fixture-partId",
+				"parts": [
+					{
+						"body": {
+							"data": "TWVzc2FnZSAxIOKAlCBjYWbDqS4KU2Vjb25kIGxpbmUu",
+							"size": 33
+						},
+						"filename": "",
+						"headers": [
+							{
+								"name": "Content-Transfer-Encoding",
+								"value": "fixture-header"
+							},
+							{
+								"name": "Content-Type",
+								"value": "fixture-header"
+							}
+						],
+						"mimeType": "text/plain",
+						"partId": "fixture-partId"
+					},
+					{
+						"body": {
+							"data": "PHA-TWVzc2FnZSAxIOKAlCBjYWbDqS48L3A-",
+							"size": 27
+						},
+						"filename": "",
+						"headers": [
+							{
+								"name": "Content-Transfer-Encoding",
+								"value": "fixture-header"
+							},
+							{
+								"name": "Content-Type",
+								"value": "fixture-header"
+							}
+						],
+						"mimeType": "text/html",
+						"partId": "fixture-partId"
+					}
+				]
+			},
+			"sizeEstimate": 0,
+			"snippet": "Message 1 — café.",
+			"threadId": "fixture-threadId"
+		},
+		{
+			"historyId": "fixture-historyId",
+			"id": "message-2",
+			"internalDate": "1700000060000",
+			"labelIds": ["INBOX", "UNREAD"],
+			"payload": {
+				"body": {
+					"size": 0
+				},
+				"filename": "",
+				"headers": [
+					{
+						"name": "Delivered-To",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "ARC-Seal",
+						"value": "fixture-header"
+					},
+					{
+						"name": "ARC-Message-Signature",
+						"value": "fixture-header"
+					},
+					{
+						"name": "ARC-Authentication-Results",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Return-Path",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received-SPF",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Authentication-Results",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "DKIM-Signature",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "ARC-Seal",
+						"value": "fixture-header"
+					},
+					{
+						"name": "ARC-Message-Signature",
+						"value": "fixture-header"
+					},
+					{
+						"name": "ARC-Authentication-Results",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Received",
+						"value": "fixture-header"
+					},
+					{
+						"name": "From",
+						"value": "Lin <lin@example.test>"
+					},
+					{
+						"name": "To",
+						"value": "Reader <reader@example.test>"
+					},
+					{
+						"name": "CC",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Subject",
+						"value": "Re: Café plans"
+					},
+					{
+						"name": "Thread-Topic",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Thread-Index",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Date",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Message-ID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "References",
+						"value": "fixture-header"
+					},
+					{
+						"name": "In-Reply-To",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Accept-Language",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Content-Language",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Has-Attach",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-TNEF-Correlator",
+						"value": "fixture-header"
+					},
+					{
+						"name": "msip_labels",
+						"value": "fixture-header"
+					},
+					{
+						"name": "authentication-results",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-publictraffictype",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-traffictypediagnostic",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-office365-filtering-correlation-id",
+						"value": "fixture-header"
+					},
+					{
+						"name": "cibccaslexception",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-exchange-senderadcheck",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-exchange-antispam-relay",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-microsoft-antispam",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-microsoft-antispam-message-info",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-forefront-antispam-report",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-exchange-antispam-messagedata-chunkcount",
+						"value": "fixture-header"
+					},
+					{
+						"name": "x-ms-exchange-antispam-messagedata-0",
+						"value": "fixture-header"
+					},
+					{
+						"name": "Content-Type",
+						"value": "fixture-header"
+					},
+					{
+						"name": "MIME-Version",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Exchange-RoutingPolicyChecked",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-OriginatorOrg",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-AuthAs",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-AuthSource",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-Network-Message-Id",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-originalarrivaltime",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-fromentityheader",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-id",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-mailboxtype",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-CrossTenant-userprincipalname",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-MS-Exchange-Transport-CrossTenantHeadersStamped",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Proofpoint-ORIG-GUID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Authority-Analysis",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Proofpoint-Spam-Info",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Proofpoint-GUID",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Proofpoint-Spam-Details-Enc",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Proofpoint-Virus-Version",
+						"value": "fixture-header"
+					},
+					{
+						"name": "X-Proofpoint-Spam-Details",
+						"value": "fixture-header"
+					}
+				],
+				"mimeType": "multipart/related",
+				"partId": "fixture-partId",
+				"parts": [
+					{
+						"body": {
+							"size": 0
+						},
+						"filename": "",
+						"headers": [
+							{
+								"name": "Content-Type",
+								"value": "fixture-header"
+							}
+						],
+						"mimeType": "multipart/alternative",
+						"partId": "fixture-partId",
+						"parts": [
+							{
+								"body": {
+									"data": "TWVzc2FnZSAyIOKAlCBjYWbDqS4KU2Vjb25kIGxpbmUu",
+									"size": 33
+								},
+								"filename": "",
+								"headers": [
+									{
+										"name": "Content-Type",
+										"value": "fixture-header"
+									},
+									{
+										"name": "Content-Transfer-Encoding",
+										"value": "fixture-header"
+									}
+								],
+								"mimeType": "text/plain",
+								"partId": "fixture-partId"
+							},
+							{
+								"body": {
+									"data": "PHA-TWVzc2FnZSAyIOKAlCBjYWbDqS48L3A-",
+									"size": 27
+								},
+								"filename": "",
+								"headers": [
+									{
+										"name": "Content-Type",
+										"value": "fixture-header"
+									},
+									{
+										"name": "Content-Transfer-Encoding",
+										"value": "fixture-header"
+									}
+								],
+								"mimeType": "text/html",
+								"partId": "fixture-partId"
+							}
+						]
+					},
+					{
+						"body": {
+							"attachmentId": "fixture-attachmentId",
+							"size": 0
+						},
+						"filename": "fixture-attachment",
+						"headers": [
+							{
+								"name": "Content-Type",
+								"value": "fixture-header"
+							},
+							{
+								"name": "Content-Description",
+								"value": "fixture-header"
+							},
+							{
+								"name": "Content-Disposition",
+								"value": "fixture-header"
+							},
+							{
+								"name": "Content-ID",
+								"value": "fixture-header"
+							},
+							{
+								"name": "Content-Transfer-Encoding",
+								"value": "fixture-header"
+							}
+						],
+						"mimeType": "image/png",
+						"partId": "fixture-partId"
+					}
+				]
+			},
+			"sizeEstimate": 0,
+			"snippet": "Message 2 — café.",
+			"threadId": "fixture-threadId"
+		}
+	]
+}
