@@ -44,6 +44,15 @@ const sourceCases = [
 		},
 	},
 	{
+		href: "/imessage?chat=42&message=message%2Bwith%26symbols",
+		reference: {
+			chatId: 42,
+			label: "iMessage requesting the proposal",
+			messageId: "message+with&symbols",
+			source: "imessage",
+		},
+	},
+	{
 		href: "/workflowy?node=node%2Bwith%26symbols",
 		reference: {
 			label: "Written proposal task",

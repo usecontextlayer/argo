@@ -9,6 +9,11 @@ import {
 	readGranolaTranscript,
 	refreshGranola,
 } from "@/granola-service"
+import {
+	listIMessageChats,
+	readIMessageChat,
+	readIMessageMessages,
+} from "@/imessage-service"
 import { listMail, readMailThread, refreshMail } from "@/mail-service"
 import { McpConnections } from "@/mcp"
 import { listTeamsChats, readTeamsMessages, refreshTeams } from "@/teams-service"
@@ -49,6 +54,13 @@ app.whenReady().then(() => {
 	}
 	ipcMain.handle("doables:list", () =>
 		listDoables(path.join(app.getAppPath(), "data/doables")),
+	)
+	ipcMain.handle("imessage:list", (_event, limit: number) => listIMessageChats(limit))
+	ipcMain.handle("imessage:chat", (_event, id: number) => readIMessageChat(id))
+	ipcMain.handle(
+		"imessage:messages",
+		(_event, chatId: number, limit: number, messageId?: string) =>
+			readIMessageMessages(chatId, limit, messageId),
 	)
 	ipcMain.handle("whatsapp:list", (_event, page: number) => whatsapp.list(page))
 	ipcMain.handle("whatsapp:chat", (_event, id: string) => whatsapp.chat(id))

@@ -14,6 +14,10 @@ export const providers = {
 		icon: new URL("../assets/providers/granola.svg", import.meta.url).href,
 		name: "Granola",
 	},
+	imessage: {
+		icon: new URL("../assets/providers/imessage.png", import.meta.url).href,
+		name: "iMessage",
+	},
 	outlook: {
 		icon: new URL("../assets/providers/outlook.svg", import.meta.url).href,
 		name: "Outlook",
@@ -44,6 +48,7 @@ export function accountProvider(accountId: string, kind: "mail" | "calendar"): P
 
 export const singleConnectionAccounts = {
 	granola: "alizain@feerasta.net",
+	imessage: "Personal",
 	teams: "azain.c@codecreators.ca",
 	whatsapp: "Personal",
 	workflowy: "Personal",

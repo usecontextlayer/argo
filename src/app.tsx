@@ -31,6 +31,12 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DoablesError, DoablesView, doablesLoader, LoadingDoables } from "@/doables-view"
 import { GranolaError, GranolaView, granolaLoader, LoadingGranola } from "@/granola-view"
+import {
+	IMessageError,
+	IMessageView,
+	imessageLoader,
+	LoadingIMessage,
+} from "@/imessage-view"
 import type { MailPage, MailThread as MailThreadData } from "@/mail"
 import { accountProvider } from "@/provider-identity"
 import { sourceItemLoader } from "@/source-item-loader"
@@ -209,6 +215,7 @@ function AppShell() {
 	const workflowy = location.pathname.startsWith("/workflowy")
 	const granola = location.pathname.startsWith("/granola")
 	const whatsapp = location.pathname.startsWith("/whatsapp")
+	const imessage = location.pathname.startsWith("/imessage")
 	const standalone = sketch
 		? "sketch"
 		: doables
@@ -219,7 +226,9 @@ function AppShell() {
 					? "granola"
 					: whatsapp
 						? "whatsapp"
-						: null
+						: imessage
+							? "imessage"
+							: null
 	const source = location.pathname.startsWith("/calendar")
 		? "calendar"
 		: location.pathname.startsWith("/teams")
@@ -240,7 +249,8 @@ function AppShell() {
 				value === "doables" ||
 				value === "workflowy" ||
 				value === "granola" ||
-				value === "whatsapp"
+				value === "whatsapp" ||
+				value === "imessage"
 					? navigate(`/${value}`)
 					: openAccount(String(value))
 			}
@@ -274,6 +284,10 @@ function AppShell() {
 					<TabsTrigger value="granola">
 						<ProviderIcon provider="granola" />
 						Granola
+					</TabsTrigger>
+					<TabsTrigger value="imessage">
+						<ProviderIcon provider="imessage" />
+						iMessage
 					</TabsTrigger>
 					<TabsTrigger value="whatsapp">
 						<ProviderIcon provider="whatsapp" />
@@ -331,6 +345,13 @@ const router = createHashRouter([
 		Component: AppShell,
 		children: [
 			{ loader: sourceItemLoader, path: "source-item" },
+			{
+				Component: IMessageView,
+				ErrorBoundary: IMessageError,
+				HydrateFallback: LoadingIMessage,
+				loader: imessageLoader,
+				path: "imessage",
+			},
 			{
 				Component: WorkspaceSketch,
 				ErrorBoundary: DoablesError,

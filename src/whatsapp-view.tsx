@@ -56,9 +56,9 @@ export function WhatsAppView() {
 		return `?${next}`
 	}
 	return (
-		<div className={`whatsapp-workspace ${chat ? "has-selection" : ""}`}>
+		<div className={`chat-workspace ${chat ? "has-selection" : ""}`}>
 			<aside
-				className="conversation-sidebar whatsapp-sidebar"
+				className="conversation-sidebar chat-sidebar"
 				aria-label="WhatsApp chats"
 			>
 				<header className="sidebar-heading">
@@ -124,7 +124,7 @@ export function WhatsAppView() {
 					{chats.items.length === 0 && (
 						<p className="empty-list">No chats on this page.</p>
 					)}
-					<div className="whatsapp-page-links">
+					<div className="chat-page-links">
 						{chatsPage > 0 && (
 							<Link to={query({ chatsPage: chatsPage - 1 })}>
 								<ArrowLeft
@@ -147,7 +147,7 @@ export function WhatsAppView() {
 				</nav>
 			</aside>
 			<main
-				className="reading-pane whatsapp-reader"
+				className="reading-pane chat-reader"
 				aria-label="WhatsApp messages"
 				aria-busy={navigation.state !== "idle"}
 			>
@@ -166,7 +166,7 @@ export function WhatsAppView() {
 						}
 					>
 						<nav
-							className="whatsapp-message-pages"
+							className="chat-message-pages"
 							aria-label="Message pages"
 						>
 							{messages.hasMore && (

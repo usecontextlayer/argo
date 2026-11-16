@@ -18,6 +18,12 @@ export const sourceReferenceSchema = z.discriminatedUnion("source", [
 		messageId: z.string().min(1).optional(),
 		source: z.literal("whatsapp"),
 	}),
+	z.object({
+		chatId: z.number().int().positive(),
+		label,
+		messageId: z.string().min(1).optional(),
+		source: z.literal("imessage"),
+	}),
 	z.object({ label, nodeId: z.string().min(1), source: z.literal("workflowy") }),
 	z.object({ label, meetingId: z.string().min(1), source: z.literal("granola") }),
 ])
@@ -43,6 +49,8 @@ export function sourceHref(reference: SourceReference): string {
 			return `/teams?${new URLSearchParams({ account: "codecreators", chat: reference.chatId })}`
 		case "whatsapp":
 			return `/whatsapp?${new URLSearchParams({ chat: reference.chatId, ...(reference.messageId ? { quote: reference.messageId } : {}) })}`
+		case "imessage":
+			return `/imessage?${new URLSearchParams({ chat: String(reference.chatId), ...(reference.messageId ? { message: reference.messageId } : {}) })}`
 		case "workflowy":
 			return `/workflowy?${new URLSearchParams({ node: reference.nodeId })}`
 		case "granola":

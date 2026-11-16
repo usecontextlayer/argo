@@ -2,10 +2,18 @@ import { contextBridge, ipcRenderer } from "electron"
 import type { CalendarApi } from "@/calendar"
 import type { DoablesApi } from "@/doables"
 import type { GranolaApi } from "@/granola"
+import type { IMessageApi } from "@/imessage"
 import type { MailApi } from "@/mail"
 import type { TeamsApi } from "@/teams"
 import type { WhatsAppApi } from "@/whatsapp"
 import type { WorkflowyApi } from "@/workflowy"
+
+contextBridge.exposeInMainWorld("imessage", {
+	chat: (id: number) => ipcRenderer.invoke("imessage:chat", id),
+	list: (limit: number) => ipcRenderer.invoke("imessage:list", limit),
+	messages: (chatId: number, limit: number, messageId?: string) =>
+		ipcRenderer.invoke("imessage:messages", chatId, limit, messageId),
+} satisfies IMessageApi)
 
 contextBridge.exposeInMainWorld("whatsapp", {
 	chat: (id: string) => ipcRenderer.invoke("whatsapp:chat", id),

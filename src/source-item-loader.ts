@@ -6,12 +6,21 @@ import {
 	type GranolaTranscript,
 	readGranolaMeetings,
 } from "@/granola"
+import type { IMessageMessage } from "@/imessage"
 import type { MailThread } from "@/mail"
 import type { TeamsMessagePage } from "@/teams"
 import type { WhatsAppMessage } from "@/whatsapp"
 import type { WorkflowyPage } from "@/workflowy"
 
 export type SourceContent =
+	| {
+			source: "imessage"
+			service: string
+			title: string
+			chatId: number
+			messages: IMessageMessage[]
+			messageId?: string
+	  }
 	| { source: "mail"; account: string; thread: MailThread }
 	| { source: "calendar"; account: string; page: CalendarPage; eventId: string }
 	| { source: "granola"; meeting: GranolaMeeting; transcript?: GranolaTranscript }
@@ -32,6 +41,20 @@ export async function loadSourceItem(
 	transcript = false,
 ): Promise<SourceContent> {
 	switch (reference.source) {
+		case "imessage": {
+			const [chat, page] = await Promise.all([
+				window.imessage.chat(reference.chatId),
+				window.imessage.messages(reference.chatId, 50, reference.messageId),
+			])
+			return {
+				chatId: chat.id,
+				messageId: reference.messageId,
+				messages: page.items,
+				service: chat.service,
+				source: "imessage",
+				title: chat.title,
+			}
+		}
 		case "mail":
 			return {
 				account: reference.account,

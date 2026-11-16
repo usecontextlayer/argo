@@ -1,7 +1,8 @@
 import { Paperclip } from "lucide-react"
-import type { ReactNode } from "react"
+import { type ReactNode, useEffect, useRef } from "react"
 import { Link } from "react-router"
 import { getAccount } from "@/accounts"
+import type { IMessageMessage } from "@/imessage"
 import type { TeamsMessage } from "@/teams"
 import type { WhatsAppMessage } from "@/whatsapp"
 import { Document } from "./document"
@@ -32,6 +33,10 @@ export function Chat({
 	highlightedId?: string
 	children?: ReactNode
 }) {
+	const highlightedMessage = useRef<HTMLElement>(null)
+	useEffect(() => {
+		if (highlightedId) highlightedMessage.current?.scrollIntoView({ block: "center" })
+	}, [highlightedId])
 	return (
 		<div className="presentation-chat">
 			{children}
@@ -56,6 +61,7 @@ export function Chat({
 					<div key={message.id}>
 						{newDay && <div className="chat-day">{day.format(message.createdAt)}</div>}
 						<section
+							ref={message.id === highlightedId ? highlightedMessage : undefined}
 							className={`chat-turn ${message.mine ? "chat-turn-mine" : ""} ${continued ? "chat-turn-continued" : ""} ${message.id === highlightedId ? "chat-turn-highlighted" : ""}`}
 							aria-label={`Message from ${message.sender}`}
 						>
@@ -154,6 +160,79 @@ export function WhatsAppConversation({
 
 export function TeamsConversation({ messages }: { messages: TeamsMessage[] }) {
 	return <Chat messages={messages} />
+}
+
+export function IMessageConversation({
+	messages,
+	quoteHref,
+	highlightedId,
+}: {
+	messages: IMessageMessage[]
+	quoteHref?: (id: string) => string
+	highlightedId?: string
+}) {
+	return (
+		<Chat
+			highlightedId={highlightedId}
+			messages={messages.map((message) => {
+				const quoted = messages.find((item) => item.id === message.replyToGuid)
+				return {
+					attachments: message.attachments,
+					createdAt: message.createdAt,
+					id: message.id,
+					mine: message.isFromMe,
+					quote: message.replyToGuid
+						? {
+								href: quoteHref?.(message.replyToGuid),
+								sender: quoted?.isFromMe ? "You" : quoted?.sender,
+								text: quoted?.text || "Quoted message",
+							}
+						: undefined,
+					sender: message.isFromMe ? "You" : message.sender,
+					text: message.text,
+				}
+			})}
+		/>
+	)
+}
+
+export function IMessageDocument({
+	title,
+	service,
+	messages,
+	actions,
+	children,
+	quoteHref,
+	highlightedId,
+}: {
+	title: string
+	service: string
+	messages: IMessageMessage[]
+	actions?: ReactNode
+	children?: ReactNode
+	quoteHref?: (id: string) => string
+	highlightedId?: string
+}) {
+	return (
+		<Document
+			title={title}
+			meta={service}
+			identity={
+				<SourceIdentity
+					provider="imessage"
+					account="Personal"
+				/>
+			}
+			actions={actions}
+		>
+			{children}
+			<IMessageConversation
+				messages={messages}
+				quoteHref={quoteHref}
+				highlightedId={highlightedId}
+			/>
+		</Document>
+	)
 }
 
 export function TeamsDocument({

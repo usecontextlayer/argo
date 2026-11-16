@@ -2,7 +2,11 @@ import { ArrowUpRight } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useFetcher } from "react-router"
 import { getAccount } from "@/accounts"
-import { TeamsDocument, WhatsAppDocument } from "@/components/presentation/chat"
+import {
+	IMessageDocument,
+	TeamsDocument,
+	WhatsAppDocument,
+} from "@/components/presentation/chat"
 import { EventDetails } from "@/components/presentation/event-details"
 import { MailThread } from "@/components/presentation/mail-thread"
 import { MeetingNotes } from "@/components/presentation/meeting-notes"
@@ -91,6 +95,18 @@ function SourceContentView({
 	loading: boolean
 }) {
 	switch (content.source) {
+		case "imessage":
+			return (
+				<IMessageDocument
+					service={content.service}
+					title={content.title}
+					messages={content.messages}
+					highlightedId={content.messageId}
+					quoteHref={(id) =>
+						`/imessage?${new URLSearchParams({ chat: String(content.chatId), message: id })}`
+					}
+				/>
+			)
 		case "mail":
 			return (
 				<MailThread
