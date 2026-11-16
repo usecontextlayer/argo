@@ -20,11 +20,20 @@ import {
 	calendarLoader,
 	LoadingCalendar,
 } from "@/calendar-view"
+import { MailThread } from "@/components/presentation/mail-thread"
+import {
+	AccountIdentity,
+	Preview,
+	ProviderIcon,
+	Timestamp,
+} from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DoablesError, DoablesView, doablesLoader, LoadingDoables } from "@/doables-view"
 import { GranolaError, GranolaView, granolaLoader, LoadingGranola } from "@/granola-view"
-import type { MailPage, MailThread } from "@/mail"
+import type { MailPage, MailThread as MailThreadData } from "@/mail"
+import { accountProvider } from "@/provider-identity"
+import { sourceItemLoader } from "@/source-item-loader"
 import { LoadingTeams, TeamsError, TeamsView, teamsLoader } from "@/teams-view"
 import {
 	LoadingWhatsApp,
@@ -39,11 +48,7 @@ import {
 	workflowyLoader,
 } from "@/workflowy-view"
 
-const date = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" })
-const fullDate = new Intl.DateTimeFormat(undefined, {
-	dateStyle: "medium",
-	timeStyle: "short",
-})
+import { WorkspaceSketch, workspaceSketchLoader } from "@/workspace-sketch"
 
 function Mailbox() {
 	const page = useLoaderData() as MailPage
@@ -88,26 +93,29 @@ function Mailbox() {
 							key={thread.id}
 							to={`/mail/${encodeURIComponent(thread.id)}?${new URLSearchParams({ account })}`}
 						>
-							<div className="conversation-meta">
-								<span className="conversation-sender">{thread.participants}</span>
-								<time dateTime={new Date(thread.date).toISOString()}>
-									{date.format(thread.date)}
-								</time>
-							</div>
-							<div className="conversation-subject">
-								{thread.unread && (
-									<span
-										className="unread-dot"
-										role="img"
-										aria-label="Unread"
+							<Preview
+								title={
+									<>
+										{thread.unread && (
+											<span
+												className="unread-dot"
+												role="img"
+												aria-label="Unread"
+											/>
+										)}
+										{thread.subject || "(No subject)"}
+									</>
+								}
+								identity={thread.participants}
+								meta={
+									<Timestamp
+										value={thread.date}
+										format="date"
 									/>
-								)}
-								{thread.subject || "(No subject)"}
-								{thread.messages.length > 1 && (
-									<span className="message-count">{thread.messages.length}</span>
-								)}
-							</div>
-							<p className="conversation-preview">{thread.snippet}</p>
+								}
+							>
+								{thread.snippet}
+							</Preview>
 						</NavLink>
 					))}
 					{page.threads.length === 0 && (
@@ -157,58 +165,23 @@ function LoadingMail() {
 	)
 }
 
-function htmlDocument(html: string) {
-	return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src 'none';"><style>body{margin:0;padding:0;font:15px/1.65 Arial,sans-serif;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{max-width:100%}</style></head><body>${html}</body></html>`
-}
-
 function Thread() {
-	const thread = useLoaderData() as MailThread
+	const thread = useLoaderData() as MailThreadData
 	const [params] = useSearchParams()
 	const account = params.get("account") ?? "feerasta"
 	return (
-		<article className="thread">
-			<header className="thread-header">
-				<Link
-					className="back-link"
-					to={`/mail?${new URLSearchParams({ account })}`}
-				>
-					← Conversations
-				</Link>
-				<h2>{thread.subject || "(No subject)"}</h2>
-				<p>
-					{thread.messages.length} {thread.messages.length === 1 ? "message" : "messages"}{" "}
-					<span aria-hidden="true">·</span> {date.format(thread.date)}
-				</p>
-			</header>
-			<div className="thread-messages">
-				{thread.messages.map((message) => (
-					<section
-						className="message"
-						key={message.id}
-					>
-						<header className="message-header">
-							<div>
-								<h3>{message.from}</h3>
-								<p>To {message.to}</p>
-							</div>
-							<time dateTime={new Date(message.date).toISOString()}>
-								{fullDate.format(message.date)}
-							</time>
-						</header>
-						{message.html ? (
-							<iframe
-								className="message-html"
-								title={`Message from ${message.from}`}
-								sandbox=""
-								srcDoc={htmlDocument(message.html)}
-							/>
-						) : (
-							<div className="message-text">{message.text}</div>
-						)}
-					</section>
-				))}
-			</div>
-		</article>
+		<>
+			<Link
+				className="back-link"
+				to={`/mail?${new URLSearchParams({ account })}`}
+			>
+				← Conversations
+			</Link>
+			<MailThread
+				thread={thread}
+				account={account}
+			/>
+		</>
 	)
 }
 
@@ -231,19 +204,22 @@ function AppShell() {
 	const location = useLocation()
 	const navigate = useNavigate()
 	const account = getAccount(params.get("account") ?? "feerasta")
+	const sketch = location.pathname.startsWith("/sketch")
 	const doables = location.pathname.startsWith("/doables")
 	const workflowy = location.pathname.startsWith("/workflowy")
 	const granola = location.pathname.startsWith("/granola")
 	const whatsapp = location.pathname.startsWith("/whatsapp")
-	const standalone = doables
-		? "doables"
-		: workflowy
-			? "workflowy"
-			: granola
-				? "granola"
-				: whatsapp
-					? "whatsapp"
-					: null
+	const standalone = sketch
+		? "sketch"
+		: doables
+			? "doables"
+			: workflowy
+				? "workflowy"
+				: granola
+					? "granola"
+					: whatsapp
+						? "whatsapp"
+						: null
 	const source = location.pathname.startsWith("/calendar")
 		? "calendar"
 		: location.pathname.startsWith("/teams")
@@ -260,6 +236,7 @@ function AppShell() {
 			className="mail-shell account-tabs"
 			value={standalone ?? account.id}
 			onValueChange={(value) =>
+				value === "sketch" ||
 				value === "doables" ||
 				value === "workflowy" ||
 				value === "granola" ||
@@ -281,17 +258,27 @@ function AppShell() {
 					aria-label="Accounts"
 				>
 					<TabsTrigger value="doables">Doables</TabsTrigger>
+					<TabsTrigger value="sketch">Sketch</TabsTrigger>
 					{accounts.map((item) => (
 						<TabsTrigger
 							key={item.id}
 							value={item.id}
 						>
-							{item.email}
+							<AccountIdentity account={item.email} />
 						</TabsTrigger>
 					))}
-					<TabsTrigger value="workflowy">Workflowy</TabsTrigger>
-					<TabsTrigger value="granola">Granola</TabsTrigger>
-					<TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+					<TabsTrigger value="workflowy">
+						<ProviderIcon provider="workflowy" />
+						Workflowy
+					</TabsTrigger>
+					<TabsTrigger value="granola">
+						<ProviderIcon provider="granola" />
+						Granola
+					</TabsTrigger>
+					<TabsTrigger value="whatsapp">
+						<ProviderIcon provider="whatsapp" />
+						WhatsApp
+					</TabsTrigger>
 				</TabsList>
 			</header>
 			<TabsContent
@@ -311,10 +298,19 @@ function AppShell() {
 							className="source-tab-list"
 							aria-label={`${account.email} sources`}
 						>
-							<TabsTrigger value="mail">Mail</TabsTrigger>
-							<TabsTrigger value="calendar">Calendar</TabsTrigger>
+							<TabsTrigger value="mail">
+								<ProviderIcon provider={accountProvider(account.id, "mail")} />
+								Mail
+							</TabsTrigger>
+							<TabsTrigger value="calendar">
+								<ProviderIcon provider={accountProvider(account.id, "calendar")} />
+								Calendar
+							</TabsTrigger>
 							{account.id === "codecreators" && (
-								<TabsTrigger value="teams">Teams</TabsTrigger>
+								<TabsTrigger value="teams">
+									<ProviderIcon provider="teams" />
+									Teams
+								</TabsTrigger>
 							)}
 						</TabsList>
 						<TabsContent
@@ -334,6 +330,14 @@ const router = createHashRouter([
 	{
 		Component: AppShell,
 		children: [
+			{ loader: sourceItemLoader, path: "source-item" },
+			{
+				Component: WorkspaceSketch,
+				ErrorBoundary: DoablesError,
+				HydrateFallback: LoadingDoables,
+				loader: workspaceSketchLoader,
+				path: "sketch",
+			},
 			{
 				Component: DoablesView,
 				ErrorBoundary: DoablesError,

@@ -9,13 +9,18 @@ import {
 	useSearchParams,
 } from "react-router"
 import { monthLink } from "@/calendar"
+import {
+	MeetingNotes,
+	type MeetingSection,
+} from "@/components/presentation/meeting-notes"
+import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
 	type GranolaMeeting,
 	type GranolaTranscript,
 	readGranolaMeetings,
 } from "@/granola"
+import { singleConnectionAccounts } from "@/provider-identity"
 
 type GranolaViewData = {
 	month: string
@@ -24,10 +29,6 @@ type GranolaViewData = {
 	transcript: GranolaTranscript | null
 }
 
-const date = new Intl.DateTimeFormat(undefined, {
-	dateStyle: "medium",
-	timeStyle: "short",
-})
 const monthDate = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" })
 
 export async function granolaLoader({
@@ -67,7 +68,10 @@ export function GranolaView() {
 				<header className="sidebar-heading">
 					<div>
 						<h1>Meetings</h1>
-						<p>Granola</p>
+						<SourceIdentity
+							provider="granola"
+							account={singleConnectionAccounts.granola}
+						/>
 					</div>
 					<Button
 						variant="outline"
@@ -110,10 +114,16 @@ export function GranolaView() {
 							className={`conversation-row ${meeting?.id === item.id ? "is-active" : ""}`}
 							to={`?${new URLSearchParams({ meeting: item.id, month })}`}
 						>
-							<div className="conversation-meta">
-								<time dateTime={item.date}>{date.format(new Date(item.date))}</time>
-							</div>
-							<div className="conversation-subject">{item.title}</div>
+							<Preview
+								title={item.title}
+								identity={
+									<SourceIdentity
+										provider="granola"
+										account={singleConnectionAccounts.granola}
+									/>
+								}
+								meta={<Timestamp value={item.date} />}
+							/>
 						</Link>
 					))}
 					{meetings.length === 0 && <p className="empty-list">No meetings this month.</p>}
@@ -125,53 +135,25 @@ export function GranolaView() {
 				aria-busy={navigation.state !== "idle"}
 			>
 				{meeting ? (
-					<article className="thread granola-meeting">
-						<header className="thread-header">
-							<Link
-								className="granola-back"
-								to={`?month=${month}`}
-							>
-								Back to meetings
-							</Link>
-							<h2>{meeting.title}</h2>
-							<p>
-								<time dateTime={meeting.date}>{date.format(new Date(meeting.date))}</time>
-							</p>
-							<p>{meeting.participants}</p>
-						</header>
-						<Tabs
-							value={view}
-							onValueChange={(value) => {
+					<div className="meeting-reader">
+						<Link
+							className="granola-back"
+							to={`?month=${month}`}
+						>
+							Back to meetings
+						</Link>
+						<MeetingNotes
+							key={meeting.id}
+							meeting={meeting}
+							section={view as MeetingSection}
+							transcript={transcript}
+							onSectionChange={(value) => {
 								const next = new URLSearchParams(params)
-								next.set("view", String(value))
+								next.set("view", value)
 								setParams(next)
 							}}
-						>
-							<TabsList
-								variant="line"
-								aria-label="Meeting content"
-							>
-								<TabsTrigger value="summary">Summary</TabsTrigger>
-								<TabsTrigger value="notes">My notes</TabsTrigger>
-								{meeting.transcriptAvailable && (
-									<TabsTrigger value="transcript">Transcript</TabsTrigger>
-								)}
-							</TabsList>
-							<TabsContent
-								value={view}
-								className="granola-content"
-							>
-								{view === "transcript"
-									? transcript?.transcript || "No transcript available."
-									: view === "notes"
-										? meeting.notes || "No private notes."
-										: meeting.summary || "No summary available."}
-							</TabsContent>
-						</Tabs>
-						{transcript?.truncated && view === "transcript" && (
-							<p className="granola-limit">Granola returned part of this transcript.</p>
-						)}
-					</article>
+						/>
+					</div>
 				) : (
 					<div className="reader-empty">
 						<h2>Meetings, remembered.</h2>

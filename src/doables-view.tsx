@@ -1,24 +1,17 @@
 import { Accordion } from "@base-ui/react/accordion"
-import { ArrowUpRight, ChevronDown } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import {
-	Link,
 	useLoaderData,
 	useRevalidator,
 	useRouteError,
 	useSearchParams,
 } from "react-router"
+import { Preview, ProviderIcon } from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
-import { type Doable, sourceHref } from "@/doables"
+import { DoableDocument } from "@/doable-document"
+import type { Doable } from "@/doables"
+import { sourceProvider } from "@/source-item"
 import "./doables.css"
-
-const sourceNames = {
-	calendar: "Calendar",
-	granola: "Granola",
-	mail: "Mail",
-	teams: "Teams",
-	whatsapp: "WhatsApp",
-	workflowy: "Workflowy",
-}
 
 const statusNames = { done: "Done", open: "Open", rejected: "Rejected" }
 
@@ -69,13 +62,23 @@ export function DoablesView() {
 						>
 							<Accordion.Header className="doable-header">
 								<Accordion.Trigger className="doable-trigger">
-									<span className="doable-summary">
-										<span className="doable-title">{doable.title}</span>
-										<span className="doable-meta">
-											{statusNames[doable.status]} · {doable.context.length}{" "}
-											{doable.context.length === 1 ? "reference" : "references"}
-										</span>
-									</span>
+									<Preview
+										title={doable.title}
+										meta={`${statusNames[doable.status]} · ${doable.context.length} references`}
+										identity={
+											<span className="doable-providers">
+												{[...new Set(doable.context.map(sourceProvider))].map(
+													(provider) => (
+														<ProviderIcon
+															key={provider}
+															provider={provider}
+															size={16}
+														/>
+													),
+												)}
+											</span>
+										}
+									/>
 									<ChevronDown
 										className="doable-chevron"
 										size={20}
@@ -85,37 +88,7 @@ export function DoablesView() {
 							</Accordion.Header>
 							<Accordion.Panel className="doable-panel">
 								<div className="doable-detail">
-									<section
-										className="doable-section"
-										aria-label="What needs doing"
-									>
-										<p>{doable.description}</p>
-									</section>
-									<section className="doable-section">
-										<h3>Why this exists</h3>
-										<p>{doable.rationale}</p>
-									</section>
-									<section className="doable-section">
-										<h3>Source context</h3>
-										<ul className="doable-references">
-											{doable.context.map((reference) => (
-												<li key={sourceHref(reference)}>
-													<Link to={sourceHref(reference)}>
-														<span className="doable-reference-content">
-															<span className="doable-reference-source">
-																{sourceNames[reference.source]}
-															</span>
-															<span>{reference.label}</span>
-														</span>
-														<ArrowUpRight
-															size={16}
-															aria-hidden="true"
-														/>
-													</Link>
-												</li>
-											))}
-										</ul>
-									</section>
+									<DoableDocument doable={doable} />
 								</div>
 							</Accordion.Panel>
 						</Accordion.Item>

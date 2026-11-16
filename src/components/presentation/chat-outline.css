@@ -1,0 +1,138 @@
+.presentation-chat {
+	display: grid;
+	gap: 1rem;
+	padding-block: 1rem;
+}
+.chat-day {
+	color: var(--muted-foreground);
+	font-size: 0.75rem;
+	text-align: center;
+	margin: 1.5rem 0;
+}
+.chat-turn {
+	display: grid;
+	justify-items: start;
+	gap: 0.5rem;
+	margin-top: 1.25rem;
+}
+.chat-turn-mine {
+	justify-items: end;
+}
+.chat-turn-continued {
+	margin-top: -0.65rem;
+}
+.chat-person {
+	font-size: 0.8rem;
+}
+.chat-person .presentation-person {
+	display: flex;
+}
+.chat-bubble {
+	max-width: min(88%, 70ch);
+	border-radius: 14px;
+	padding: 0.85rem 1rem 0.5rem;
+	background: var(--muted);
+	min-width: 6rem;
+}
+.chat-turn-mine .chat-bubble {
+	background: var(--secondary);
+}
+.chat-turn-highlighted .chat-bubble {
+	outline: 2px solid var(--ring);
+	outline-offset: 3px;
+}
+.chat-text {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	line-height: 1.65;
+}
+.chat-time {
+	text-align: right;
+	color: var(--muted-foreground);
+	font-size: 0.7rem;
+	margin-top: 0.35rem;
+}
+.chat-quote {
+	display: grid;
+	gap: 0.2rem;
+	border-left: 1px solid var(--muted-foreground);
+	margin: 0 0 0.6rem;
+	padding: 0.4rem 0.75rem;
+	color: var(--muted-foreground);
+	font-size: 0.85rem;
+	text-decoration: none;
+}
+.chat-quote span {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+.chat-attachment {
+	display: flex;
+	gap: 0.4rem;
+	align-items: center;
+	color: var(--muted-foreground);
+	margin-top: 0.5rem;
+	font-size: 0.8rem;
+}
+.presentation-outline {
+	line-height: 1.75;
+	overflow-wrap: anywhere;
+}
+.presentation-outline ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.outline-branch > ul {
+	padding-left: 1.7rem;
+	margin-left: 0.75rem;
+	border-left: 1px solid var(--border);
+}
+.outline-line {
+	display: flex;
+	align-items: baseline;
+	gap: 0.65rem;
+	padding-block: 0.3rem;
+}
+.outline-disclosure {
+	background: transparent;
+	padding: 0;
+	border: 0;
+	color: var(--muted-foreground);
+	display: inline-flex;
+	width: 0.8rem;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+.outline-bullet {
+	width: 0.4rem;
+	height: 0.4rem;
+	border-radius: 50%;
+	background: var(--muted-foreground);
+	flex-shrink: 0;
+	align-self: flex-start;
+	margin-top: 0.7rem;
+}
+.outline-text {
+	flex: 1;
+	min-width: 0;
+}
+.outline-text p {
+	margin: 0;
+}
+.outline-line-selected > .outline-text {
+	font-weight: 600;
+}
+.outline-count {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	font-size: 0.75rem;
+	color: var(--muted-foreground);
+	text-decoration: none;
+}
+.outline-bullet:focus-visible,
+.outline-disclosure:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 4px;
+}

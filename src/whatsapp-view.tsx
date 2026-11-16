@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, MessageSquare, Paperclip, Quote } from "lucide-react"
+import { ArrowLeft, ArrowRight, MessageSquare } from "lucide-react"
 import {
 	Link,
 	type LoaderFunctionArgs,
@@ -8,6 +8,8 @@ import {
 	useRouteError,
 	useSearchParams,
 } from "react-router"
+import { WhatsAppConversation, WhatsAppDocument } from "@/components/presentation/chat"
+import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
 import type {
 	WhatsAppChat,
@@ -15,12 +17,6 @@ import type {
 	WhatsAppMessage,
 	WhatsAppPage,
 } from "@/whatsapp"
-
-const date = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" })
-const messageDate = new Intl.DateTimeFormat(undefined, {
-	dateStyle: "medium",
-	timeStyle: "short",
-})
 
 type WhatsAppViewData = {
 	chats: WhatsAppPage<WhatsAppChat>
@@ -68,7 +64,10 @@ export function WhatsAppView() {
 				<header className="sidebar-heading">
 					<div>
 						<h1>Chats</h1>
-						<p>WhatsApp</p>
+						<SourceIdentity
+							provider="whatsapp"
+							account="Personal"
+						/>
 					</div>
 					<Button
 						variant="outline"
@@ -90,27 +89,36 @@ export function WhatsAppView() {
 							className={`conversation-row ${chat === item.id ? "is-active" : ""}`}
 							to={query({ chat: item.id, chatsPage })}
 						>
-							<div className="conversation-meta">
-								<span className="whatsapp-chat-type">
-									{item.isGroup ? "Group chat" : "Direct chat"}
-								</span>
-								{item.updatedAt !== null && (
-									<time dateTime={new Date(item.updatedAt).toISOString()}>
-										{date.format(item.updatedAt)}
-									</time>
-								)}
-							</div>
-							<div className="whatsapp-chat-title">
-								<span className="conversation-subject">{item.title}</span>
-								{item.unread && (
-									<span
-										className="whatsapp-unread"
-										role="img"
-										aria-label="Unread"
+							<Preview
+								title={
+									<>
+										{item.unread && (
+											<span
+												className="unread-dot"
+												role="img"
+												aria-label="Unread"
+											/>
+										)}
+										{item.title}
+									</>
+								}
+								meta={
+									item.updatedAt !== null && (
+										<Timestamp
+											value={item.updatedAt}
+											format="date"
+										/>
+									)
+								}
+								identity={
+									<SourceIdentity
+										provider="whatsapp"
+										account="Personal"
 									/>
-								)}
-							</div>
-							<p className="conversation-preview">{item.preview}</p>
+								}
+							>
+								{item.preview}
+							</Preview>
 						</Link>
 					))}
 					{chats.items.length === 0 && (
@@ -144,21 +152,19 @@ export function WhatsAppView() {
 				aria-busy={navigation.state !== "idle"}
 			>
 				{selected && messages ? (
-					<article className="whatsapp-conversation">
-						<header className="thread-header">
+					<WhatsAppDocument
+						title={selected.title}
+						messages={messages.items}
+						quoteHref={(id) => query({ chat, chatsPage, messagesPage, quote: id })}
+						actions={
 							<Link
-								className="whatsapp-back"
+								className="back-link"
 								to={query({ chatsPage })}
 							>
-								<ArrowLeft
-									size={14}
-									aria-hidden="true"
-								/>{" "}
-								Chats
+								← Chats
 							</Link>
-							<h2>{selected.title}</h2>
-							<p>{selected.isGroup ? "Group conversation" : "Direct conversation"}</p>
-						</header>
+						}
+					>
 						<nav
 							className="whatsapp-message-pages"
 							aria-label="Message pages"
@@ -191,77 +197,16 @@ export function WhatsAppView() {
 								aria-label="Quoted message"
 							>
 								<div className="whatsapp-context-heading">
-									<h3 className="whatsapp-context-title">Quoted message</h3>
+									<h3>Quoted message</h3>
 									<Link to={query({ chat, chatsPage, messagesPage })}>Close context</Link>
 								</div>
-								<header className="message-header">
-									<strong>{context.message.sender}</strong>
-									<time dateTime={new Date(context.message.createdAt).toISOString()}>
-										{messageDate.format(context.message.createdAt)}
-									</time>
-								</header>
-								<p className="whatsapp-message-text">
-									{context.message.text || context.message.mediaType}
-								</p>
+								<WhatsAppConversation
+									messages={[...context.before, context.message, ...context.after]}
+									highlightedId={context.message.id}
+								/>
 							</section>
 						)}
-						<div className="whatsapp-messages">
-							{messages.items.map((message) => {
-								const quoted = messages.items.find(
-									(item) => item.id === message.quotedMessageId,
-								)
-								return (
-									<section
-										className="whatsapp-message"
-										key={`${message.chatId}:${message.id}`}
-									>
-										<header className="message-header">
-											<h3>{message.isFromMe ? "You" : message.sender}</h3>
-											<time dateTime={new Date(message.createdAt).toISOString()}>
-												{messageDate.format(message.createdAt)}
-											</time>
-										</header>
-										{message.quotedMessageId && (
-											<Link
-												className="whatsapp-quote"
-												to={query({
-													chat,
-													chatsPage,
-													messagesPage,
-													quote: message.quotedMessageId,
-												})}
-											>
-												<Quote
-													size={14}
-													aria-hidden="true"
-												/>
-												<span className="whatsapp-quote-text">
-													{quoted
-														? `${quoted.sender}: ${quoted.text || quoted.mediaType || "Message"}`
-														: "View quoted message"}
-												</span>
-											</Link>
-										)}
-										<div className="whatsapp-message-text">{message.text}</div>
-										{message.mediaType && (
-											<p className="whatsapp-media">
-												<Paperclip
-													size={14}
-													aria-hidden="true"
-												/>
-												{message.mediaType === "reaction"
-													? "Reaction"
-													: message.mediaType}
-											</p>
-										)}
-									</section>
-								)
-							})}
-						</div>
-						{messages.items.length === 0 && (
-							<p className="empty-list">No messages on this page.</p>
-						)}
-					</article>
+					</WhatsAppDocument>
 				) : (
 					<div className="reader-empty">
 						<MessageSquare

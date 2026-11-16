@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import {
 	Link,
 	type LoaderFunctionArgs,
@@ -9,83 +9,169 @@ import {
 	useSearchParams,
 } from "react-router"
 import { getAccount } from "@/accounts"
+import { type CalendarPage, civilDate, eventTime } from "@/calendar"
+import { EventDetails } from "@/components/presentation/event-details"
+import { SourceIdentity } from "@/components/presentation/primitives"
+import { DayView, type ScheduleEntry, WeekView } from "@/components/presentation/schedule"
 import {
-	type CalendarPage,
-	civilDate,
-	eventDate,
-	eventTime,
-	groupCalendarEvents,
-	monthLink,
-} from "@/calendar"
+	civilDay,
+	scheduleDate,
+	scheduleDays,
+} from "@/components/presentation/schedule-dates"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { accountProvider } from "@/provider-identity"
 
 export function currentMonth() {
-	const today = new Date()
-	return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`
+	return civilDay(new Date()).slice(0, 7)
 }
 
-export async function calendarLoader({ request }: LoaderFunctionArgs) {
+type CalendarViewData = CalendarPage & {
+	month: string
+	day: string
+	view: "day" | "week"
+}
+
+export async function calendarLoader({
+	request,
+}: LoaderFunctionArgs): Promise<CalendarViewData> {
 	const params = new URL(request.url).searchParams
-	const month = params.get("month") ?? currentMonth()
+	const month = params.get("month") ?? params.get("date")?.slice(0, 7) ?? currentMonth()
 	const account = params.get("account") ?? "feerasta"
-	return { ...(await window.calendar.list(account, month)), month }
-}
-
-function plainDescription(html: string) {
-	return (
-		new DOMParser().parseFromString(
-			html.replace(/<br\s*\/?\s*>|<\/(?:p|div|li)>/gi, "\n"),
-			"text/html",
-		).body.textContent ?? ""
+	const page = await window.calendar.list(account, month)
+	const selected = page.events.find((event) => event.id === params.get("event"))
+	const day =
+		params.get("date") ??
+		(selected
+			? scheduleDate(
+					selected.start.date ?? (selected.start.dateTime as string),
+					page.timeZone,
+				)
+			: month === currentMonth()
+				? civilDay(new Date())
+				: `${month}-01`)
+	const view = params.get("view") === "day" ? "day" : "week"
+	const visibleMonths = new Set(
+		scheduleDays(civilDate(day), view === "day" ? 1 : 7).map((date) =>
+			civilDay(date).slice(0, 7),
+		),
 	)
+	visibleMonths.delete(month)
+	const otherPages = await Promise.all(
+		[...visibleMonths].map((value) => window.calendar.list(account, value)),
+	)
+	return {
+		...page,
+		day,
+		events: [
+			...new Map(
+				[page, ...otherPages]
+					.flatMap((value) => value.events)
+					.map((event) => [event.id, event]),
+			).values(),
+		],
+		month,
+		view,
+	}
 }
 
 export function CalendarView() {
-	const { events, timeZone, month } = useLoaderData() as CalendarPage & { month: string }
-	const [params] = useSearchParams()
+	const { events, timeZone, month, day, view } = useLoaderData() as CalendarViewData
+	const [params, setParams] = useSearchParams()
 	const account = params.get("account") ?? "feerasta"
-	const accountSuffix = `&${new URLSearchParams({ account })}`
 	const navigation = useNavigation()
 	const revalidator = useRevalidator()
 	const selected = events.find((event) => event.id === params.get("event"))
-	const groups = groupCalendarEvents(events, timeZone)
-	const monthTitle = new Intl.DateTimeFormat(undefined, {
+	const date = civilDate(day)
+	const days = scheduleDays(date, view === "day" ? 1 : 7)
+	const dateFormat = new Intl.DateTimeFormat(undefined, {
+		day: "numeric",
 		month: "long",
 		year: "numeric",
-	}).format(civilDate(`${month}-01`))
+	})
+	const title =
+		view === "day"
+			? dateFormat.format(date)
+			: `${dateFormat.format(days[0])} – ${dateFormat.format(days[6])}`
+	function navigateDate(offset: number) {
+		const next = new Date(date)
+		next.setDate(next.getDate() + offset)
+		setParams({ account, date: civilDay(next), month: civilDay(next).slice(0, 7), view })
+	}
+	const entries: ScheduleEntry[] = events.map((event) => ({
+		allDay: Boolean(event.start.date),
+		content: (
+			<Link
+				className="schedule-event-link"
+				aria-current={selected?.id === event.id ? "true" : undefined}
+				to={`?${new URLSearchParams({ account, date: day, event: event.id, month, view })}`}
+			>
+				<strong>{event.summary || "Untitled event"}</strong>
+				<time>{eventTime(event, timeZone)}</time>
+				<small>{event.calendarNames?.join(" · ")}</small>
+			</Link>
+		),
+		end: event.end.date ?? (event.end.dateTime as string),
+		id: event.id,
+		start: event.start.date ?? (event.start.dateTime as string),
+	}))
 	return (
-		<div className={`calendar-workspace ${selected ? "has-selection" : ""}`}>
+		<div className="calendar-presentation-workspace">
 			<section
-				className="calendar-agenda"
-				aria-label="Calendar agenda"
+				className="calendar-presentation-main"
+				aria-label="Calendar"
 				aria-busy={navigation.state !== "idle"}
 			>
-				<header className="calendar-heading">
+				<header className="calendar-presentation-heading">
 					<div>
-						<h1>{monthTitle}</h1>
+						<h1>{title}</h1>
+						<SourceIdentity
+							provider={accountProvider(account, "calendar")}
+							account={account}
+						/>
 						<p>All calendars · {timeZone.replaceAll("_", " ")}</p>
 					</div>
-					<div className="calendar-controls">
-						<Link
-							className="calendar-month-arrow"
-							to={`${monthLink(month, -1)}${accountSuffix}`}
-							aria-label="Previous month"
+					<div className="calendar-presentation-controls">
+						<Tabs
+							value={view}
+							onValueChange={(value) => {
+								const next = new URLSearchParams(params)
+								next.set("view", String(value))
+								next.set("date", day)
+								setParams(next)
+							}}
 						>
-							<ChevronLeft size={18} />
-						</Link>
-						<Link
-							className="calendar-today"
-							to={`?month=${currentMonth()}${accountSuffix}`}
+							<TabsList aria-label="Calendar view">
+								<TabsTrigger value="day">Day</TabsTrigger>
+								<TabsTrigger value="week">Week</TabsTrigger>
+							</TabsList>
+						</Tabs>
+						<Button
+							variant="ghost"
+							size="icon"
+							aria-label={view === "day" ? "Previous day" : "Previous week"}
+							onClick={() => navigateDate(view === "day" ? -1 : -7)}
+						>
+							<ChevronLeft size={17} />
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								const today = civilDay(new Date())
+								setParams({ account, date: today, month: today.slice(0, 7), view })
+							}}
 						>
 							Today
-						</Link>
-						<Link
-							className="calendar-month-arrow"
-							to={`${monthLink(month, 1)}${accountSuffix}`}
-							aria-label="Next month"
+						</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							aria-label={view === "day" ? "Next day" : "Next week"}
+							onClick={() => navigateDate(view === "day" ? 1 : 7)}
 						>
-							<ChevronRight size={18} />
-						</Link>
+							<ChevronRight size={17} />
+						</Button>
 						<Button
 							variant="outline"
 							size="sm"
@@ -99,128 +185,45 @@ export function CalendarView() {
 						</Button>
 					</div>
 				</header>
-				<div className="calendar-days">
-					{groups.map(([day, group]) => (
-						<section
-							className="calendar-day"
-							key={day}
-						>
-							<h2>
-								<span>
-									{new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(
-										civilDate(day),
-									)}
-								</span>
-								<strong>{civilDate(day).getDate()}</strong>
-							</h2>
-							<div className="calendar-day-events">
-								{group.map((event) => (
-									<Link
-										className={`calendar-event-row ${selected?.id === event.id ? "is-active" : ""}`}
-										key={event.id}
-										to={`?${new URLSearchParams({ account, event: event.id, month })}`}
-									>
-										<time>{eventTime(event, timeZone)}</time>
-										<div>
-											<h3>{event.summary || "Untitled event"}</h3>
-											<p>{event.calendarNames?.join(" · ")}</p>
-											{event.location && <p>{event.location}</p>}
-										</div>
-									</Link>
-								))}
-							</div>
-						</section>
-					))}
-					{events.length === 0 && (
-						<div className="calendar-no-events">
-							<CalendarDays
-								size={24}
-								strokeWidth={1.5}
-							/>
-							<h2>A clear calendar.</h2>
-							<p>No events this month.</p>
-						</div>
-					)}
-				</div>
-			</section>
-			<main
-				className="calendar-detail"
-				aria-label="Event details"
-			>
-				{selected ? (
-					<article className="calendar-event-detail">
-						<Link
-							className="calendar-back"
-							to={`?month=${month}${accountSuffix}`}
-						>
-							← Calendar
-						</Link>
-						<header>
-							<h2>{selected.summary || "Untitled event"}</h2>
-							<p>{eventDate(selected, timeZone)}</p>
-						</header>
-						<dl>
-							<dt>Calendar</dt>
-							<dd>{selected.calendarNames?.join(" · ")}</dd>
-							{selected.location && (
-								<>
-									<dt>Location</dt>
-									<dd>{selected.location}</dd>
-								</>
-							)}
-							{selected.hangoutLink && (
-								<>
-									<dt>Video call</dt>
-									<dd>{selected.hangoutLink}</dd>
-								</>
-							)}
-							{selected.organizer && (
-								<>
-									<dt>Organizer</dt>
-									<dd>{selected.organizer.displayName || selected.organizer.email}</dd>
-								</>
-							)}
-							{selected.attendees && selected.attendees.length > 0 && (
-								<>
-									<dt>Guests</dt>
-									<dd>
-										<ul className="calendar-guests">
-											{selected.attendees.map((attendee) => (
-												<li key={attendee.email}>
-													<span>
-														{attendee.displayName || attendee.email}
-														{attendee.self ? " (you)" : ""}
-													</span>
-													{attendee.responseStatus && (
-														<small>
-															{attendee.responseStatus.replace(
-																"needsAction",
-																"Awaiting response",
-															)}
-														</small>
-													)}
-												</li>
-											))}
-										</ul>
-									</dd>
-								</>
-							)}
-						</dl>
-						{selected.description && (
-							<section className="calendar-description">
-								<h3>Details</h3>
-								<p>{plainDescription(selected.description)}</p>
-							</section>
-						)}
-					</article>
+				{view === "day" ? (
+					<DayView
+						date={date}
+						timeZone={timeZone}
+						entries={entries}
+					/>
 				) : (
-					<div className="reader-empty">
-						<span className="empty-rule" />
-						<h2>Your time, in view.</h2>
-						<p>Select an event to read its details.</p>
-					</div>
+					<WeekView
+						date={date}
+						timeZone={timeZone}
+						entries={entries}
+					/>
 				)}
-			</main>
+			</section>
+			{selected && (
+				<main
+					className="calendar-presentation-detail"
+					aria-label="Event details"
+				>
+					<div className="calendar-presentation-close">
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => {
+								const next = new URLSearchParams(params)
+								next.delete("event")
+								setParams(next)
+							}}
+						>
+							<X size={16} /> Close event
+						</Button>
+					</div>
+					<EventDetails
+						event={selected}
+						timeZone={timeZone}
+						account={account}
+					/>
+				</main>
+			)}
 		</div>
 	)
 }

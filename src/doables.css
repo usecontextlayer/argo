@@ -56,23 +56,6 @@
 	outline: 2px solid var(--primary);
 	outline-offset: -2px;
 }
-.doable-summary {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	min-width: 0;
-}
-.doable-title {
-	font-size: 18px;
-	line-height: 1.5;
-	font-weight: 600;
-	overflow-wrap: anywhere;
-}
-.doable-meta {
-	color: var(--muted-foreground);
-	font-size: 12px;
-	font-weight: 400;
-}
 .doable-chevron {
 	flex-shrink: 0;
 	color: var(--muted-foreground);
@@ -83,64 +66,14 @@
 .doable-detail {
 	padding: 0 40px 32px 8px;
 }
-.doable-section:first-child {
-	margin-top: 0;
-}
-.doable-section {
-	margin-top: 30px;
-}
-.doable-section h3 {
-	margin: 0 0 12px;
-	font-size: 12px;
-	font-weight: 650;
-}
-.doable-section p {
-	max-width: 70ch;
-	margin: 0;
-	font-size: 14px;
-	line-height: 1.85;
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
-}
-.doable-references {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-.doable-references li + li {
-	border-top: 1px solid var(--border);
-}
-.doable-references a {
-	display: flex;
+.doable-providers {
+	display: inline-flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 20px;
-	padding: 16px 12px;
-	border-radius: 6px;
-	color: var(--foreground);
-	font-size: 13px;
-	line-height: 1.65;
-	text-decoration: none;
+	gap: 8px;
 }
-.doable-references a:hover {
-	background: var(--muted);
+.doable-trigger > .presentation-preview {
+	flex: 1;
 }
-.doable-references svg {
-	flex-shrink: 0;
-	color: var(--primary);
-}
-.doable-reference-content {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	min-width: 0;
-	overflow-wrap: anywhere;
-}
-.doable-reference-source {
-	color: var(--muted-foreground);
-	font-size: 11px;
-}
-
 @media (max-width: 800px) {
 	.doables-workspace {
 		padding: 24px 20px 48px;

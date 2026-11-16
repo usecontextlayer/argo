@@ -1,0 +1,126 @@
+.event-fact > svg {
+	flex: 0 0 auto;
+	margin-block-start: 0.2rem;
+	color: var(--muted-foreground);
+}
+.correspondence-message {
+	border-block-start: 1px solid var(--border);
+}
+.correspondence-summary {
+	display: flex;
+	align-items: center;
+	gap: 0.875rem;
+	padding-block: 1.25rem;
+	cursor: pointer;
+	list-style: none;
+}
+.correspondence-summary::-webkit-details-marker {
+	display: none;
+}
+.correspondence-summary:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 4px;
+}
+.correspondence-summary > svg {
+	flex: 0 0 auto;
+	color: var(--muted-foreground);
+	transform: rotate(-90deg);
+}
+.correspondence-message[open] > summary > svg {
+	transform: rotate(0);
+}
+.correspondence-sender {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+.correspondence-excerpt {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--muted-foreground);
+	font-size: 0.875rem;
+}
+.correspondence-summary time {
+	margin-inline-start: auto;
+	flex: 0 0 auto;
+	color: var(--muted-foreground);
+	font-size: 0.75rem;
+}
+.correspondence-message[open] .correspondence-excerpt {
+	display: none;
+}
+.correspondence-content {
+	padding: 0 0 2rem 1.875rem;
+}
+.correspondence-recipients {
+	color: var(--muted-foreground);
+	font-size: 0.8125rem;
+	margin-block: 0 1.5rem;
+	overflow-wrap: anywhere;
+}
+.document-plain-text {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	line-height: 1.75;
+}
+.document-source-note {
+	color: var(--muted-foreground);
+	font-size: 0.875rem;
+	margin-block-start: 1.5rem;
+}
+.event-facts {
+	display: grid;
+	gap: 1.5rem;
+}
+.event-fact {
+	display: flex;
+	align-items: start;
+	gap: 1rem;
+	overflow-wrap: anywhere;
+}
+
+.event-fact strong {
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+.event-fact p {
+	color: var(--muted-foreground);
+	margin-block: 0.375rem 0;
+	font-size: 0.875rem;
+}
+.event-fact a {
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+.event-people {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.5rem 2rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+@media (max-width: 640px) {
+	.correspondence-summary {
+		flex-wrap: wrap;
+	}
+	.correspondence-excerpt {
+		flex-basis: 100%;
+		padding-inline-start: 1.875rem;
+	}
+	.correspondence-summary time {
+		font-size: 0.6875rem;
+	}
+	.correspondence-content {
+		padding-inline-start: 0;
+	}
+}
+
+.meeting-reader {
+	padding: clamp(1.25rem, 4vw, 3rem);
+}
+.meeting-reader > .granola-back {
+	display: inline-flex;
+	margin-block-end: 1.5rem;
+}

@@ -1,4 +1,4 @@
-import { MessageSquare, Paperclip } from "lucide-react"
+import { MessageSquare } from "lucide-react"
 import {
 	Link,
 	type LoaderFunctionArgs,
@@ -8,14 +8,11 @@ import {
 	useRouteError,
 	useSearchParams,
 } from "react-router"
+import { getAccount } from "@/accounts"
+import { TeamsDocument } from "@/components/presentation/chat"
+import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
 import type { TeamsChatPage, TeamsMessagePage } from "@/teams"
-
-const date = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" })
-const messageDate = new Intl.DateTimeFormat(undefined, {
-	dateStyle: "medium",
-	timeStyle: "short",
-})
 
 type TeamsViewData = {
 	chats: TeamsChatPage
@@ -32,16 +29,6 @@ export async function teamsLoader({
 		chat ? window.teams.messages(chat, params.get("messagesPage") ?? undefined) : null,
 	])
 	return { chats, messages }
-}
-
-function messageText(html: string, text: string) {
-	if (!html) return text
-	return (
-		new DOMParser().parseFromString(
-			html.replace(/<br\s*\/?\s*>|<\/(?:p|div|li)>/gi, "\n"),
-			"text/html",
-		).body.textContent ?? ""
-	)
 }
 
 export function TeamsView() {
@@ -66,7 +53,10 @@ export function TeamsView() {
 				<header className="sidebar-heading">
 					<div>
 						<h1>Chats</h1>
-						<p>Microsoft Teams</p>
+						<SourceIdentity
+							provider="teams"
+							account={getAccount("codecreators").email}
+						/>
 					</div>
 					<Button
 						variant="outline"
@@ -94,19 +84,27 @@ export function TeamsView() {
 								chatsPage: params.get("chatsPage") ?? undefined,
 							})}
 						>
-							<div className="conversation-meta">
-								<span className="teams-chat-type">
-									{item.type === "oneOnOne"
-										? "Direct chat"
-										: item.type === "meeting"
-											? "Meeting"
-											: "Group chat"}
-								</span>
-								<time dateTime={new Date(item.updatedAt).toISOString()}>
-									{date.format(item.updatedAt)}
-								</time>
-							</div>
-							<div className="conversation-subject">{item.title}</div>
+							<Preview
+								title={item.title}
+								meta={
+									<Timestamp
+										value={item.updatedAt}
+										format="date"
+									/>
+								}
+								identity={
+									<SourceIdentity
+										provider="teams"
+										account={getAccount("codecreators").email}
+									/>
+								}
+							>
+								{item.type === "oneOnOne"
+									? "Direct chat"
+									: item.type === "meeting"
+										? "Meeting"
+										: "Group chat"}
+							</Preview>
 						</Link>
 					))}
 					{chats.chats.length === 0 && <p className="empty-list">No chats here yet.</p>}
@@ -126,17 +124,18 @@ export function TeamsView() {
 				aria-busy={navigation.state !== "idle"}
 			>
 				{messages ? (
-					<article className="teams-conversation">
-						<header className="thread-header">
+					<TeamsDocument
+						title={selected?.title ?? "Conversation"}
+						messages={messages.messages}
+						actions={
 							<Link
-								className="teams-back"
+								className="back-link"
 								to={query({ chatsPage: params.get("chatsPage") ?? undefined })}
 							>
 								← Chats
 							</Link>
-							<h2>{selected?.title ?? "Conversation"}</h2>
-							<p>{messages.messages.length} messages on this page</p>
-						</header>
+						}
+					>
 						{messages.nextPageToken && (
 							<Link
 								className="teams-older"
@@ -160,44 +159,7 @@ export function TeamsView() {
 								Back to latest messages
 							</Link>
 						)}
-						<div className="teams-messages">
-							{messages.messages.map((message) => (
-								<section
-									className="teams-message"
-									key={message.id}
-								>
-									<header className="message-header">
-										<h3>{message.sender}</h3>
-										<time dateTime={new Date(message.createdAt).toISOString()}>
-											{messageDate.format(message.createdAt)}
-										</time>
-									</header>
-									<div className="teams-message-text">
-										{messageText(message.html, message.text)}
-									</div>
-									{message.attachments.length > 0 && (
-										<ul
-											className="teams-attachments"
-											aria-label="Attachments"
-										>
-											{message.attachments.map((attachment) => (
-												<li key={attachment.id}>
-													<Paperclip
-														size={14}
-														aria-hidden="true"
-													/>
-													<span>{attachment.name}</span>
-												</li>
-											))}
-										</ul>
-									)}
-								</section>
-							))}
-						</div>
-						{messages.messages.length === 0 && (
-							<p className="empty-list">No messages on this page.</p>
-						)}
-					</article>
+					</TeamsDocument>
 				) : (
 					<div className="reader-empty">
 						<MessageSquare

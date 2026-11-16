@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight, Home } from "lucide-react"
+import { ArrowLeft, Home } from "lucide-react"
 import {
 	Link,
 	type LoaderFunctionArgs,
@@ -8,6 +8,7 @@ import {
 	useRevalidator,
 	useRouteError,
 } from "react-router"
+import { WorkflowyDocument } from "@/components/presentation/outline"
 import { Button } from "@/components/ui/button"
 import type { WorkflowyPage } from "@/workflowy"
 
@@ -22,15 +23,6 @@ export async function workflowyLoader({
 	return { ...(await window.workflowy.read(target, limit)), limit, target }
 }
 
-function plainText(html: string) {
-	return (
-		new DOMParser().parseFromString(
-			html.replace(/<br\s*\/?\s*>|<\/(?:p|div|li)>/gi, "\n"),
-			"text/html",
-		).body.textContent ?? ""
-	)
-}
-
 export function WorkflowyView() {
 	const { nodes, target, limit } = useLoaderData() as WorkflowyViewData
 	const navigate = useNavigate()
@@ -40,7 +32,6 @@ export function WorkflowyView() {
 	const children = nodes.filter(
 		(node) => node.id !== target && node.depth === (selected?.depth ?? -1) + 1,
 	)
-	const title = target === "root" ? "Home" : plainText(selected?.text ?? "Workflowy")
 	return (
 		<main
 			className="workflowy-reader"
@@ -78,37 +69,11 @@ export function WorkflowyView() {
 					{revalidator.state !== "idle" ? "Refreshing…" : "Refresh"}
 				</Button>
 			</header>
-			<article className="workflowy-outline">
-				<h1>{target === "root" ? "Workflowy" : "Workflowy entry"}</h1>
-				<div className="workflowy-selected">{title}</div>
-				{children.length > 0 ? (
-					<ul className="workflowy-children">
-						{children.map((node) => (
-							<li key={node.id}>
-								<Link
-									to={`?${new URLSearchParams({ node: node.id })}`}
-									className="workflowy-node"
-								>
-									<span
-										className="workflowy-bullet"
-										aria-hidden="true"
-									/>
-									<span className="workflowy-node-text">
-										{plainText(node.text) || "Untitled entry"}
-									</span>
-									{node.children > 0 && (
-										<span className="workflowy-child-count">
-											{node.children}
-											<ChevronRight size={14} />
-										</span>
-									)}
-								</Link>
-							</li>
-						))}
-					</ul>
-				) : (
-					<p className="workflowy-empty">No entries inside.</p>
-				)}
+			<WorkflowyDocument
+				nodes={nodes}
+				target={target}
+				nodeHref={(id) => `?${new URLSearchParams({ node: id })}`}
+			>
 				{selected && selected.children > children.length && (
 					<Link
 						className="workflowy-more"
@@ -117,7 +82,7 @@ export function WorkflowyView() {
 						Show more entries
 					</Link>
 				)}
-			</article>
+			</WorkflowyDocument>
 		</main>
 	)
 }
