@@ -2,7 +2,22 @@ import path from "node:path"
 import { app, BrowserWindow, ipcMain } from "electron"
 import started from "electron-squirrel-startup"
 import { listCalendar, refreshCalendar } from "@/calendar-service"
+import { listDoables } from "@/doables-service"
+import {
+	listGranolaMeetings,
+	readGranolaMeeting,
+	readGranolaTranscript,
+	refreshGranola,
+} from "@/granola-service"
 import { listMail, readMailThread, refreshMail } from "@/mail-service"
+import { McpConnections } from "@/mcp"
+import { listTeamsChats, readTeamsMessages, refreshTeams } from "@/teams-service"
+import { createWhatsAppService } from "@/whatsapp-service"
+import { createWorkflowyService } from "@/workflowy-service"
+
+const mcp = new McpConnections(path.join(app.getAppPath(), "mcp.json"))
+const workflowy = createWorkflowyService(mcp)
+const whatsapp = createWhatsAppService(mcp)
 
 if (started) {
 	app.quit()
@@ -29,6 +44,28 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+	ipcMain.handle("doables:list", () =>
+		listDoables(path.join(app.getAppPath(), "data/doables")),
+	)
+	ipcMain.handle("whatsapp:list", (_event, page: number) => whatsapp.list(page))
+	ipcMain.handle("whatsapp:chat", (_event, id: string) => whatsapp.chat(id))
+	ipcMain.handle("whatsapp:messages", (_event, chatId: string, page: number) =>
+		whatsapp.messages(chatId, page),
+	)
+	ipcMain.handle("whatsapp:context", (_event, id: string) => whatsapp.context(id))
+	ipcMain.handle("granola:list", (_event, month: string) => listGranolaMeetings(month))
+	ipcMain.handle("granola:meeting", (_event, id: string) => readGranolaMeeting(id))
+	ipcMain.handle("granola:transcript", (_event, id: string) => readGranolaTranscript(id))
+	ipcMain.handle("granola:refresh", () => refreshGranola())
+	ipcMain.handle("workflowy:read", (_event, target: string, limit: number) =>
+		workflowy.read(target, limit),
+	)
+	ipcMain.handle("workflowy:refresh", () => workflowy.refresh())
+	ipcMain.handle("teams:list", (_event, pageToken?: string) => listTeamsChats(pageToken))
+	ipcMain.handle("teams:messages", (_event, chatId: string, pageToken?: string) =>
+		readTeamsMessages(chatId, pageToken),
+	)
+	ipcMain.handle("teams:refresh", () => refreshTeams())
 	ipcMain.handle("calendar:list", (_event, account: string, month: string) =>
 		listCalendar(account, month),
 	)
@@ -47,6 +84,10 @@ app.whenReady().then(() => {
 			createWindow()
 		}
 	})
+})
+
+app.on("will-quit", () => {
+	void mcp.close()
 })
 
 app.on("window-all-closed", () => {

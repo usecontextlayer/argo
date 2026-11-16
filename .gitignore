@@ -7,3 +7,6 @@ out/
 
 .DS_Store
 .codegraph/
+mcp.json
+
+data/doables/*.json

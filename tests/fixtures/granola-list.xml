@@ -1,0 +1,67 @@
+<pagination has_more="false" total_count="12" remaining_count="0" />
+
+
+<requested_range time_range="last_30_days" timezone="UTC" start="2026-11-16" end="2026-11-16" end_inclusive="true">Meetings in the requested range.</requested_range>
+Recorded provider advisory.
+
+<meetings_data connected_user_email="reader@example.test" workspace_name="Test workspace" from="2026-11-16" to="2026-11-16" count="12">
+<meeting id="meeting-1" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-2" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-3" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-4" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-5" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-6" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-7" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-8" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-9" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-10" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-11" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+
+<meeting id="meeting-12" title="Planning &amp; review &quot;café&quot;" date="2026-11-16" meeting_at="2026-11-16T14:30:00+00:00" captured_by_me="true" listed_as_participant="true" is_workspace_visible="false" url="https://example.test/meeting">
+    <known_participants>Ada &amp; Lin &lt;team@example.test&gt;</known_participants>
+    <folders />
+  </meeting>
+</meetings_data>

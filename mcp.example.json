@@ -1,0 +1,12 @@
+{
+	"mcpServers": {
+		"whatsapp": {
+			"type": "http",
+			"url": "http://127.0.0.1:8110/mcp"
+		},
+		"workflowy": {
+			"type": "http",
+			"url": "http://127.0.0.1:PORT/mcp/CONNECTION_ID"
+		}
+	}
+}

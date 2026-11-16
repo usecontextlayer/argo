@@ -1,0 +1,97 @@
+[
+	{
+		"attachments": [
+			{
+				"content": "fixture-content",
+				"contentType": "fixture-contentType",
+				"contentUrl": null,
+				"id": "attachment-1",
+				"name": null,
+				"teamsAppId": null,
+				"thumbnailUrl": null
+			},
+			{
+				"content": null,
+				"contentType": "fixture-contentType",
+				"contentUrl": "https://example.test/plan.pdf",
+				"id": "attachment-2",
+				"name": "Plan.pdf",
+				"teamsAppId": null,
+				"thumbnailUrl": null
+			}
+		],
+		"body": {
+			"content": "<p>Plan — café.</p>",
+			"contentType": "html"
+		},
+		"channelIdentity": null,
+		"chatId": "fixture-chatId",
+		"createdDateTime": "2023-11-14T22:14:20.000Z",
+		"deletedDateTime": null,
+		"display_url": "fixture-display_url",
+		"etag": "fixture-etag",
+		"eventDetail": null,
+		"from": {
+			"application": null,
+			"device": null,
+			"user": {
+				"@odata.type": "fixture-@odata.type",
+				"displayName": "Ada",
+				"id": "fixture-id",
+				"tenantId": "fixture-tenantId",
+				"userIdentityType": "fixture-userIdentityType"
+			}
+		},
+		"id": "later-message",
+		"importance": "fixture-importance",
+		"lastEditedDateTime": null,
+		"lastModifiedDateTime": "fixture-lastModifiedDateTime",
+		"locale": "fixture-locale",
+		"mentions": [],
+		"messageType": "message",
+		"policyViolation": null,
+		"reactions": [],
+		"replyToId": null,
+		"subject": null,
+		"summary": null,
+		"webUrl": "fixture-webUrl"
+	},
+	{
+		"attachments": [],
+		"body": {
+			"content": "<p>Earlier reply.</p>",
+			"contentType": "html"
+		},
+		"channelIdentity": null,
+		"chatId": "fixture-chatId",
+		"createdDateTime": "2023-11-14T22:13:20.000Z",
+		"deletedDateTime": null,
+		"display_url": "fixture-display_url",
+		"etag": "fixture-etag",
+		"eventDetail": null,
+		"from": {
+			"application": null,
+			"device": null,
+			"user": {
+				"@odata.type": "fixture-@odata.type",
+				"displayName": "Lin",
+				"id": "fixture-id",
+				"tenantId": "fixture-tenantId",
+				"userIdentityType": "fixture-userIdentityType"
+			}
+		},
+		"id": "earlier-message",
+		"importance": "fixture-importance",
+		"lastEditedDateTime": null,
+		"lastModifiedDateTime": "fixture-lastModifiedDateTime",
+		"locale": "fixture-locale",
+		"mentions": [],
+		"messageType": "message",
+		"policyViolation": null,
+		"reactions": [],
+		"replyToId": null,
+		"subject": null,
+		"summary": null,
+		"webUrl": "fixture-webUrl"
+	}
+]

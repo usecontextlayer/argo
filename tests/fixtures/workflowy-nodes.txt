@@ -1,0 +1,6 @@
+[None]bullets "Test home"
+      1:0:0
+[test-node-1]·bullets "First child — café"
+               2:0:0
+[test-node-2]·bullets "Second child"
+               3:0:0

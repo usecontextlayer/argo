@@ -22,7 +22,22 @@ import {
 } from "@/calendar-view"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DoablesError, DoablesView, doablesLoader, LoadingDoables } from "@/doables-view"
+import { GranolaError, GranolaView, granolaLoader, LoadingGranola } from "@/granola-view"
 import type { MailPage, MailThread } from "@/mail"
+import { LoadingTeams, TeamsError, TeamsView, teamsLoader } from "@/teams-view"
+import {
+	LoadingWhatsApp,
+	WhatsAppError,
+	WhatsAppView,
+	whatsappLoader,
+} from "@/whatsapp-view"
+import {
+	LoadingWorkflowy,
+	WorkflowyError,
+	WorkflowyView,
+	workflowyLoader,
+} from "@/workflowy-view"
 
 const date = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" })
 const fullDate = new Intl.DateTimeFormat(undefined, {
@@ -216,18 +231,42 @@ function AppShell() {
 	const location = useLocation()
 	const navigate = useNavigate()
 	const account = getAccount(params.get("account") ?? "feerasta")
-	const source = location.pathname.startsWith("/calendar") ? "calendar" : "mail"
+	const doables = location.pathname.startsWith("/doables")
+	const workflowy = location.pathname.startsWith("/workflowy")
+	const granola = location.pathname.startsWith("/granola")
+	const whatsapp = location.pathname.startsWith("/whatsapp")
+	const standalone = doables
+		? "doables"
+		: workflowy
+			? "workflowy"
+			: granola
+				? "granola"
+				: whatsapp
+					? "whatsapp"
+					: null
+	const source = location.pathname.startsWith("/calendar")
+		? "calendar"
+		: location.pathname.startsWith("/teams")
+			? "teams"
+			: "mail"
 	function openAccount(id: string) {
 		const query = new URLSearchParams({ account: id })
 		if (source === "calendar" && params.has("month"))
 			query.set("month", params.get("month") as string)
-		navigate(`/${source}?${query}`)
+		navigate(`/${source === "teams" && id !== "codecreators" ? "mail" : source}?${query}`)
 	}
 	return (
 		<Tabs
 			className="mail-shell account-tabs"
-			value={account.id}
-			onValueChange={(value) => openAccount(String(value))}
+			value={standalone ?? account.id}
+			onValueChange={(value) =>
+				value === "doables" ||
+				value === "workflowy" ||
+				value === "granola" ||
+				value === "whatsapp"
+					? navigate(`/${value}`)
+					: openAccount(String(value))
+			}
 		>
 			<header className="app-header">
 				<Link
@@ -241,6 +280,7 @@ function AppShell() {
 					className="account-tab-list"
 					aria-label="Accounts"
 				>
+					<TabsTrigger value="doables">Doables</TabsTrigger>
 					{accounts.map((item) => (
 						<TabsTrigger
 							key={item.id}
@@ -249,32 +289,42 @@ function AppShell() {
 							{item.email}
 						</TabsTrigger>
 					))}
+					<TabsTrigger value="workflowy">Workflowy</TabsTrigger>
+					<TabsTrigger value="granola">Granola</TabsTrigger>
+					<TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
 				</TabsList>
 			</header>
 			<TabsContent
-				value={account.id}
+				value={standalone ?? account.id}
 				className="account-tab-content"
 			>
-				<Tabs
-					value={source}
-					className="source-tabs"
-					onValueChange={(value) => navigate(`/${value}?account=${account.id}`)}
-				>
-					<TabsList
-						variant="line"
-						className="source-tab-list"
-						aria-label={`${account.email} sources`}
-					>
-						<TabsTrigger value="mail">Mail</TabsTrigger>
-						<TabsTrigger value="calendar">Calendar</TabsTrigger>
-					</TabsList>
-					<TabsContent
+				{standalone ? (
+					<Outlet />
+				) : (
+					<Tabs
 						value={source}
-						className="source-tab-content"
+						className="source-tabs"
+						onValueChange={(value) => navigate(`/${value}?account=${account.id}`)}
 					>
-						<Outlet />
-					</TabsContent>
-				</Tabs>
+						<TabsList
+							variant="line"
+							className="source-tab-list"
+							aria-label={`${account.email} sources`}
+						>
+							<TabsTrigger value="mail">Mail</TabsTrigger>
+							<TabsTrigger value="calendar">Calendar</TabsTrigger>
+							{account.id === "codecreators" && (
+								<TabsTrigger value="teams">Teams</TabsTrigger>
+							)}
+						</TabsList>
+						<TabsContent
+							value={source}
+							className="source-tab-content"
+						>
+							<Outlet />
+						</TabsContent>
+					</Tabs>
+				)}
 			</TabsContent>
 		</Tabs>
 	)
@@ -284,7 +334,42 @@ const router = createHashRouter([
 	{
 		Component: AppShell,
 		children: [
+			{
+				Component: DoablesView,
+				ErrorBoundary: DoablesError,
+				HydrateFallback: LoadingDoables,
+				loader: doablesLoader,
+				path: "doables",
+			},
+			{
+				Component: WhatsAppView,
+				ErrorBoundary: WhatsAppError,
+				HydrateFallback: LoadingWhatsApp,
+				loader: whatsappLoader,
+				path: "whatsapp",
+			},
+			{
+				Component: GranolaView,
+				ErrorBoundary: GranolaError,
+				HydrateFallback: LoadingGranola,
+				loader: granolaLoader,
+				path: "granola",
+			},
+			{
+				Component: WorkflowyView,
+				ErrorBoundary: WorkflowyError,
+				HydrateFallback: LoadingWorkflowy,
+				loader: workflowyLoader,
+				path: "workflowy",
+			},
 			{ Component: LoadingMail, index: true, loader: () => redirect("/mail") },
+			{
+				Component: TeamsView,
+				ErrorBoundary: TeamsError,
+				HydrateFallback: LoadingTeams,
+				loader: teamsLoader,
+				path: "teams",
+			},
 			{
 				Component: Mailbox,
 				children: [
