@@ -3,3 +3,5 @@ allowBuilds:
   electron: true
   electron-winstaller: false
   fsevents: false
+patchedDependencies:
+  "@electron-forge/plugin-vite@8.0.1": patches/@electron-forge__plugin-vite@8.0.1.patch

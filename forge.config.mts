@@ -34,6 +34,7 @@ const config: ForgeConfig = {
 					target: "preload",
 				},
 			],
+			hotRestart: true,
 			renderer: [
 				{
 					config: "vite.renderer.config.mts",

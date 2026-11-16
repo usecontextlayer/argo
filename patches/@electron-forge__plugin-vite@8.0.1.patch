@@ -1,0 +1,46 @@
+diff --git a/dist/VitePlugin.js b/dist/VitePlugin.js
+index cff877e9de5b96ed6c209f8b0d2152fe70582712..0d1bc3b264ceb4a01018aa2283697911928debbf 100644
+--- a/dist/VitePlugin.js
++++ b/dist/VitePlugin.js
+@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
+ import path from 'node:path';
+ import { styleText } from 'node:util';
+ import { readJson, writeJson } from '@electron-forge/core-utils';
++import { requestAppRestart } from '@electron-forge/core-utils/restart';
+ import { namedHookWithTaskFn, PluginBase } from '@electron-forge/plugin-base';
+ import debug from 'debug';
+ import { PRESET_TIMER } from 'listr2';
+@@ -114,6 +115,9 @@ function spawnViteBuildWatch(pluginConfig, index, projectDir, devServerUrls, onR
+             else if (msg.type === 'first-build-error') {
+                 settle(() => reject(new Error(msg.message)));
+             }
++            else if (msg.type === 'restart-app') {
++                requestAppRestart();
++            }
+             else if (msg.type === 'reload-renderers') {
+                 onReloadRenderers();
+             }
+@@ -291,6 +295,7 @@ the generated files). Instead, it is ${JSON.stringify(pj.main)}.`);
+         return {
+             build: this.config.build,
+             renderer: this.config.renderer,
++            hotRestart: this.config.hotRestart,
+         };
+     }
+     // Main process, Preload scripts and Worker process, etc.
+diff --git a/dist/config/vite.base.config.js b/dist/config/vite.base.config.js
+index 893836d0e2609c1d597e53f57d2e62248413f17d..af409c79e6285dae86afddae0459d744a1bb815f 100644
+--- a/dist/config/vite.base.config.js
++++ b/dist/config/vite.base.config.js
+@@ -103,7 +103,10 @@ export function pluginHotRestart(command) {
+                     server.ws.send({ type: 'full-reload' });
+                 }
+             }
+-            else if (command === 'restart' && !requestAppRestart() && isRebuild) {
++            else if (command === 'restart' && isRebuild && process.send) {
++                process.send({ type: 'restart-app' });
++            }
++            else if (command === 'restart' && !process.send && !requestAppRestart() && isRebuild) {
+                 // The first build finishes before the app is spawned, so only a rebuild
+                 // that fails to reach it is worth warning about.
+                 console.warn(styleText('yellow', '[@electron-forge/plugin-vite] Rebuilt the main process bundle, but the running app was not restarted, so it is still running the previous code.'));

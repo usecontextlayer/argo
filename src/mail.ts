@@ -23,9 +23,9 @@ export type MailPage = {
 }
 
 export type MailApi = {
-	list: (pageToken?: string) => Promise<MailPage>
+	list: (account: string, pageToken?: string) => Promise<MailPage>
 	refresh: () => Promise<void>
-	thread: (id: string) => Promise<MailThread>
+	thread: (account: string, id: string) => Promise<MailThread>
 }
 
 declare global {

@@ -1,7 +1,8 @@
 import path from "node:path"
 import { app, BrowserWindow, ipcMain } from "electron"
 import started from "electron-squirrel-startup"
-import { listMail, readMailThread, refreshMail } from "@/composio"
+import { listCalendar, refreshCalendar } from "@/calendar-service"
+import { listMail, readMailThread, refreshMail } from "@/mail-service"
 
 if (started) {
 	app.quit()
@@ -28,9 +29,17 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-	ipcMain.handle("mail:list", (_event, pageToken?: string) => listMail(pageToken))
+	ipcMain.handle("calendar:list", (_event, account: string, month: string) =>
+		listCalendar(account, month),
+	)
+	ipcMain.handle("calendar:refresh", () => refreshCalendar())
+	ipcMain.handle("mail:list", (_event, account: string, pageToken?: string) =>
+		listMail(account, pageToken),
+	)
 	ipcMain.handle("mail:refresh", () => refreshMail())
-	ipcMain.handle("mail:thread", (_event, id: string) => readMailThread(id))
+	ipcMain.handle("mail:thread", (_event, account: string, id: string) =>
+		readMailThread(account, id),
+	)
 	createWindow()
 
 	app.on("activate", () => {
