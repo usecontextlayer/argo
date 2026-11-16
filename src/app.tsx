@@ -158,7 +158,7 @@ function LoadingMail() {
 }
 
 function htmlDocument(html: string) {
-	return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src 'none';"><style>body{margin:0;padding:0;color:#302f2b;font:15px/1.65 Arial,sans-serif;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{max-width:100%}a{color:#657549}</style></head><body>${html}</body></html>`
+	return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src 'none';"><style>body{margin:0;padding:0;font:15px/1.65 Arial,sans-serif;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{max-width:100%}</style></head><body>${html}</body></html>`
 }
 
 function Thread() {
@@ -271,9 +271,9 @@ function AppShell() {
 			<header className="app-header">
 				<Link
 					to={`/mail?account=${account.id}`}
-					className="app-name"
+					className="app-name font-logo"
 				>
-					argo<span className="app-name-dot">.</span>
+					argo
 				</Link>
 				<TabsList
 					variant="line"

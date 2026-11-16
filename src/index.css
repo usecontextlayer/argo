@@ -1,11 +1,33 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@fontsource-variable/plus-jakarta-sans";
+
+@font-face {
+	font-family: "Google Sans Code";
+	src: url("../assets/fonts/GoogleSansCode.ttf") format("truetype");
+	font-style: normal;
+	font-weight: 300 800;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Changa One";
+	src: url("../assets/fonts/ChangaOne-Regular.ttf") format("truetype");
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+@source inline("font-sans font-heading font-mono font-logo");
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
 	--font-sans: "Plus Jakarta Sans Variable", sans-serif;
+	--font-heading: var(--font-sans);
+	--font-mono: "Google Sans Code", monospace;
+	--font-logo: "Changa One", sans-serif;
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--color-card: var(--card);
@@ -32,24 +54,45 @@
 
 :root {
 	--radius: 0.5rem;
-	--background: #fbfaf7;
-	--foreground: #302f29;
-	--card: #fbfaf7;
-	--card-foreground: #302f29;
-	--popover: #fbfaf7;
-	--popover-foreground: #302f29;
-	--primary: #566638;
-	--primary-foreground: #ffffff;
-	--secondary: #f1efe8;
-	--secondary-foreground: #302f29;
-	--muted: #f1efe8;
-	--muted-foreground: #77756b;
-	--accent: #e9eddf;
-	--accent-foreground: #3e4c29;
-	--destructive: #ad3b32;
-	--border: #e5e2d8;
-	--input: #d6d2c7;
-	--ring: #73834e;
+	--background: var(--color-white);
+	--foreground: var(--color-slate-950);
+	--card: var(--color-white);
+	--card-foreground: var(--color-slate-950);
+	--popover: var(--color-white);
+	--popover-foreground: var(--color-slate-950);
+	--primary: var(--color-slate-900);
+	--primary-foreground: var(--color-slate-50);
+	--secondary: var(--color-slate-100);
+	--secondary-foreground: var(--color-slate-900);
+	--muted: var(--color-slate-100);
+	--muted-foreground: var(--color-slate-500);
+	--accent: var(--color-slate-100);
+	--accent-foreground: var(--color-slate-900);
+	--destructive: var(--color-red-600);
+	--border: var(--color-slate-200);
+	--input: var(--color-slate-200);
+	--ring: var(--color-slate-400);
+}
+
+.dark {
+	--background: var(--color-slate-950);
+	--foreground: var(--color-slate-50);
+	--card: var(--color-slate-900);
+	--card-foreground: var(--color-slate-50);
+	--popover: var(--color-slate-900);
+	--popover-foreground: var(--color-slate-50);
+	--primary: var(--color-slate-200);
+	--primary-foreground: var(--color-slate-900);
+	--secondary: var(--color-slate-800);
+	--secondary-foreground: var(--color-slate-50);
+	--muted: var(--color-slate-800);
+	--muted-foreground: var(--color-slate-400);
+	--accent: var(--color-slate-800);
+	--accent-foreground: var(--color-slate-50);
+	--destructive: var(--color-red-400);
+	--border: var(--color-slate-800);
+	--input: var(--color-slate-800);
+	--ring: var(--color-slate-500);
 }
 
 @layer base {
@@ -61,6 +104,20 @@
 		@apply bg-background text-foreground font-sans;
 		margin: 0;
 	}
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		@apply font-heading;
+	}
+	code,
+	kbd,
+	pre,
+	samp {
+		@apply font-mono;
+	}
 	button,
 	a {
 		-webkit-tap-highlight-color: transparent;
@@ -71,25 +128,9 @@
 	button:disabled {
 		cursor: default;
 	}
-	::selection {
-		background: #dce4ca;
-		color: #302f29;
-	}
 	:focus-visible {
 		outline: 2px solid var(--ring);
 		outline-offset: 3px;
-	}
-	::-webkit-scrollbar {
-		width: 7px;
-		height: 7px;
-	}
-	::-webkit-scrollbar-thumb {
-		background: #c8c7bb;
-		border: 2px solid var(--background);
-		border-radius: 8px;
-	}
-	::-webkit-scrollbar-track {
-		background: transparent;
 	}
 }
 
@@ -111,22 +152,22 @@ body {
 	gap: 23px;
 	padding: 0 28px;
 	border-bottom: 1px solid var(--border);
-	background: #f7f6f1;
+	background: var(--muted);
 }
 .app-name {
-	font-size: 25px;
-	font-weight: 750;
-	letter-spacing: -0.055em;
-	text-decoration: none;
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
 	color: var(--foreground);
-}
-.app-name-dot {
-	color: var(--primary);
+	font-size: 38px;
+	font-weight: 400;
+	line-height: 1;
+	text-decoration: none;
 }
 .header-divider {
 	width: 1px;
 	height: 21px;
-	background: #dcd9ce;
+	background: var(--border);
 }
 .header-section {
 	font-size: 13px;
@@ -134,7 +175,7 @@ body {
 }
 .account-name {
 	margin-left: auto;
-	color: #6f6c61;
+	color: var(--muted-foreground);
 	font-size: 12px;
 }
 .mail-workspace,
@@ -191,7 +232,7 @@ body {
 	width: 380px;
 	flex: 0 0 380px;
 	border-right: 1px solid var(--border);
-	background: #f7f6f1;
+	background: var(--muted);
 }
 .sidebar-heading {
 	display: flex;
@@ -208,7 +249,7 @@ body {
 }
 .sidebar-heading p {
 	font-size: 12px;
-	color: #777267;
+	color: var(--muted-foreground);
 	margin: 6px 0 0;
 }
 .sidebar-heading [data-slot="button"] {
@@ -232,7 +273,7 @@ body {
 	transition: background-color 120ms ease;
 }
 .conversation-row:hover {
-	background: #efeee6;
+	background: var(--accent);
 }
 .conversation-row.is-active {
 	background: var(--accent);
@@ -258,7 +299,7 @@ body {
 }
 .conversation-meta time {
 	flex-shrink: 0;
-	color: #777267;
+	color: var(--muted-foreground);
 	font-size: 10px;
 	font-variant-numeric: tabular-nums;
 }
@@ -271,7 +312,7 @@ body {
 	line-height: 1.55;
 }
 .unread-dot {
-	background: #697a43;
+	background: var(--primary);
 	width: 5px;
 	height: 5px;
 	flex: 0 0 5px;
@@ -281,11 +322,11 @@ body {
 	flex-shrink: 0;
 	margin-left: auto;
 	font-size: 10px;
-	color: #726f64;
+	color: var(--muted-foreground);
 }
 .conversation-preview {
 	margin: 6px 0 0;
-	color: #777267;
+	color: var(--muted-foreground);
 	font-size: 12px;
 	line-height: 1.6;
 	display: -webkit-box;
@@ -328,7 +369,7 @@ body {
 .empty-rule {
 	width: 30px;
 	height: 2px;
-	background: #a5ac90;
+	background: var(--ring);
 	margin-bottom: 5px;
 }
 .reader-empty h2 {
@@ -504,7 +545,7 @@ body {
 	border-right: 1px solid var(--border);
 	display: flex;
 	flex-direction: column;
-	background: #f7f6f1;
+	background: var(--muted);
 }
 .calendar-heading {
 	padding: 30px 28px 26px;

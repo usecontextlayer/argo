@@ -47,7 +47,7 @@
 	"name": "argo",
 	"packageManager": "pnpm@11.22.0",
 	"private": true,
-	"productName": "argo",
+	"productName": "Argo",
 	"scripts": {
 		"check": "pnpm run format.fix && pnpm run tsc",
 		"format.fix": "biome check --fix --error-on-warnings .",

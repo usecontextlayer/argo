@@ -44,6 +44,9 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+	if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+		app.dock?.setIcon(path.join(app.getAppPath(), "assets/argo-icon.png"))
+	}
 	ipcMain.handle("doables:list", () =>
 		listDoables(path.join(app.getAppPath(), "data/doables")),
 	)
