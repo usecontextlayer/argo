@@ -54,8 +54,6 @@ import {
 	workflowyLoader,
 } from "@/workflowy-view"
 
-import { WorkspaceSketch, workspaceSketchLoader } from "@/workspace-sketch"
-
 function Mailbox() {
 	const page = useLoaderData() as MailPage
 	const [params] = useSearchParams()
@@ -205,30 +203,14 @@ function MailError() {
 	)
 }
 
+const standaloneTabs = ["doables", "workflowy", "granola", "whatsapp", "imessage"]
+
 function AppShell() {
 	const [params] = useSearchParams()
 	const location = useLocation()
 	const navigate = useNavigate()
 	const account = getAccount(params.get("account") ?? "feerasta")
-	const sketch = location.pathname.startsWith("/sketch")
-	const doables = location.pathname.startsWith("/doables")
-	const workflowy = location.pathname.startsWith("/workflowy")
-	const granola = location.pathname.startsWith("/granola")
-	const whatsapp = location.pathname.startsWith("/whatsapp")
-	const imessage = location.pathname.startsWith("/imessage")
-	const standalone = sketch
-		? "sketch"
-		: doables
-			? "doables"
-			: workflowy
-				? "workflowy"
-				: granola
-					? "granola"
-					: whatsapp
-						? "whatsapp"
-						: imessage
-							? "imessage"
-							: null
+	const standalone = standaloneTabs.find((tab) => location.pathname.startsWith(`/${tab}`))
 	const source = location.pathname.startsWith("/calendar")
 		? "calendar"
 		: location.pathname.startsWith("/teams")
@@ -245,12 +227,7 @@ function AppShell() {
 			className="mail-shell account-tabs"
 			value={standalone ?? account.id}
 			onValueChange={(value) =>
-				value === "sketch" ||
-				value === "doables" ||
-				value === "workflowy" ||
-				value === "granola" ||
-				value === "whatsapp" ||
-				value === "imessage"
+				standaloneTabs.includes(String(value))
 					? navigate(`/${value}`)
 					: openAccount(String(value))
 			}
@@ -268,7 +245,6 @@ function AppShell() {
 					aria-label="Accounts"
 				>
 					<TabsTrigger value="doables">Doables</TabsTrigger>
-					<TabsTrigger value="sketch">Sketch</TabsTrigger>
 					{accounts.map((item) => (
 						<TabsTrigger
 							key={item.id}
@@ -351,13 +327,6 @@ const router = createHashRouter([
 				HydrateFallback: LoadingIMessage,
 				loader: imessageLoader,
 				path: "imessage",
-			},
-			{
-				Component: WorkspaceSketch,
-				ErrorBoundary: DoablesError,
-				HydrateFallback: LoadingDoables,
-				loader: workspaceSketchLoader,
-				path: "sketch",
 			},
 			{
 				Component: DoablesView,
