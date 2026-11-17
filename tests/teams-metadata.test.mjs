@@ -130,7 +130,11 @@ test("an embedded Teams reference uses the selected chat title independently of 
 	})
 
 	assert.deepEqual(result, {
-		content: { page: messages, source: "teams", title: "Ada" },
+		content: {
+			chat: selectedChat,
+			messages: messages.messages,
+			source: "teams",
+		},
 	})
 })
 

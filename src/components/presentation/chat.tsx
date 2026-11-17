@@ -1,11 +1,20 @@
-import { Paperclip } from "lucide-react"
+import { Paperclip, Reply } from "lucide-react"
 import { type ReactNode, useEffect, useRef } from "react"
 import { Link } from "react-router"
 import { singleConnectionAccounts } from "@/accounts"
-import type { IMessageMessage } from "@/imessage"
+import {
+	IMessageReply,
+	TeamsReply,
+	useTeamsReply,
+	useWhatsAppReply,
+	WhatsAppReply,
+} from "@/components/chat-replies"
+import { Button } from "@/components/ui/button"
+import { whatsAppToHtml } from "@/editor"
+import type { IMessageChat, IMessageMessage } from "@/imessage"
 import { cn } from "@/lib/utils"
-import type { TeamsMessage } from "@/teams"
-import type { WhatsAppMessage } from "@/whatsapp"
+import type { TeamsChat, TeamsMessage } from "@/teams"
+import type { WhatsAppChat, WhatsAppMessage } from "@/whatsapp"
 import { Document } from "./document"
 import { Person, SourceIdentity, Timestamp } from "./primitives"
 import { HtmlContent } from "./rich-text"
@@ -27,9 +36,11 @@ const day = new Intl.DateTimeFormat(undefined, { dateStyle: "full" })
 export function Chat({
 	messages,
 	highlightedId,
+	onReply,
 }: {
 	messages: ChatMessage[]
 	highlightedId?: string
+	onReply?: (id: string) => void
 }) {
 	const highlightedMessage = useRef<HTMLElement>(null)
 	useEffect(() => {
@@ -125,7 +136,17 @@ export function Chat({
 										{attachment.name}
 									</div>
 								))}
-								<div className="mt-2 text-right text-xs text-muted-foreground">
+								<div className="mt-2 flex items-center justify-end gap-3 text-xs text-muted-foreground">
+									{onReply && (
+										<Button
+											variant="ghost"
+											size="icon-sm"
+											aria-label={`Reply to ${message.sender}`}
+											onClick={() => onReply(message.id)}
+										>
+											<Reply aria-hidden="true" />
+										</Button>
+									)}
 									<Timestamp
 										value={message.createdAt}
 										format="time"
@@ -147,18 +168,22 @@ export function WhatsAppConversation({
 	messages,
 	quoteHref,
 	highlightedId,
+	onReply,
 }: {
 	messages: WhatsAppMessage[]
 	quoteHref?: (id: string) => string
 	highlightedId?: string
+	onReply?: (id: string) => void
 }) {
 	return (
 		<Chat
+			onReply={onReply}
 			highlightedId={highlightedId}
 			messages={messages.map((message) => {
 				const quoted = messages.find((item) => item.id === message.quotedMessageId)
 				return {
 					createdAt: message.createdAt,
+					html: message.text ? whatsAppToHtml(message.text) : undefined,
 					id: message.id,
 					mediaType: message.mediaType,
 					mine: message.isFromMe,
@@ -212,26 +237,26 @@ export function IMessageConversation({
 }
 
 export function IMessageDocument({
-	title,
-	service,
+	chat,
 	messages,
 	actions,
 	children,
 	quoteHref,
 	highlightedId,
+	sendOnEnter = true,
 }: {
-	title: string
-	service: string
+	chat: IMessageChat
 	messages: IMessageMessage[]
 	actions?: ReactNode
 	children?: ReactNode
 	quoteHref?: (id: string) => string
 	highlightedId?: string
+	sendOnEnter?: boolean
 }) {
 	return (
 		<Document
-			title={title}
-			meta={service}
+			title={chat.title}
+			meta={chat.service}
 			identity={
 				<SourceIdentity
 					provider="imessage"
@@ -246,24 +271,31 @@ export function IMessageDocument({
 				quoteHref={quoteHref}
 				highlightedId={highlightedId}
 			/>
+			<IMessageReply
+				chatId={chat.id}
+				sendOnEnter={sendOnEnter}
+			/>
 		</Document>
 	)
 }
 
 export function TeamsDocument({
-	title,
+	chat,
 	messages,
 	actions,
 	children,
+	sendOnEnter = true,
 }: {
-	title: string
+	chat: TeamsChat
 	messages: TeamsMessage[]
 	actions?: ReactNode
 	children?: ReactNode
+	sendOnEnter?: boolean
 }) {
+	const { binding, reply } = useTeamsReply(chat.id)
 	return (
 		<Document
-			title={title}
+			title={chat.title}
 			identity={
 				<SourceIdentity
 					provider="teams"
@@ -273,28 +305,45 @@ export function TeamsDocument({
 			actions={actions}
 		>
 			{children}
-			<Chat messages={messages} />
+			<Chat
+				messages={messages}
+				onReply={
+					binding.loaded && binding.activity === "idle"
+						? (id) => {
+								const message = messages.find((item) => item.id === id)
+								if (message) reply(message)
+							}
+						: undefined
+				}
+			/>
+			<TeamsReply
+				binding={binding}
+				sendOnEnter={sendOnEnter}
+			/>
 		</Document>
 	)
 }
 export function WhatsAppDocument({
-	title,
+	chat,
 	messages,
 	actions,
 	children,
 	quoteHref,
 	highlightedId,
+	sendOnEnter = true,
 }: {
-	title: string
+	chat: WhatsAppChat
 	messages: WhatsAppMessage[]
 	actions?: ReactNode
 	children?: ReactNode
 	quoteHref?: (id: string) => string
 	highlightedId?: string
+	sendOnEnter?: boolean
 }) {
+	const { binding, reply } = useWhatsAppReply(chat.id)
 	return (
 		<Document
-			title={title}
+			title={chat.title}
 			identity={
 				<SourceIdentity
 					provider="whatsapp"
@@ -305,9 +354,21 @@ export function WhatsAppDocument({
 		>
 			{children}
 			<WhatsAppConversation
+				onReply={
+					binding.loaded && binding.activity === "idle"
+						? (id) => {
+								const message = messages.find((item) => item.id === id)
+								if (message) reply(message)
+							}
+						: undefined
+				}
 				messages={messages}
 				quoteHref={quoteHref}
 				highlightedId={highlightedId}
+			/>
+			<WhatsAppReply
+				binding={binding}
+				sendOnEnter={sendOnEnter}
 			/>
 		</Document>
 	)

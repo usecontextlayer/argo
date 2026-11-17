@@ -1,8 +1,12 @@
-import { execute, memoize } from "@/composio"
+import type { ChatDraftStore } from "@/chat-drafts"
+import { execute, memoize, proxy } from "@/composio"
+import { documentToHtml, documentToText } from "@/editor"
 import {
 	readTeamsMessages as decodeMessages,
+	type TeamsApi,
 	type TeamsChat,
 	type TeamsChatPage,
+	type TeamsDraft,
 	type TeamsMessagePage,
 	type TeamsSourceMessage,
 } from "@/teams"
@@ -82,7 +86,7 @@ async function fetchMessages(
 		},
 	)
 	return {
-		messages: decodeMessages(page.value),
+		messages: decodeMessages(page.value, userId),
 		nextPageToken: page.next_page_token ?? undefined,
 	}
 }
@@ -112,4 +116,41 @@ export function refreshTeams() {
 	chatPages.clear()
 	messagePages.clear()
 	chats.clear()
+}
+
+export function createTeamsDraftService(
+	drafts: ChatDraftStore<TeamsDraft>,
+): Pick<TeamsApi, "draft" | "saveDraft" | "sendDraft" | "discardDraft"> {
+	return {
+		discardDraft: (chatId) => drafts.remove(chatId),
+		draft: (chatId) => drafts.read(chatId),
+		saveDraft: (chatId, draft) => drafts.save(chatId, draft),
+		async sendDraft(chatId) {
+			const draft = await drafts.read(chatId)
+			if (!draft) throw new Error("This conversation has no saved draft.")
+			if (!documentToText(draft.body).trim())
+				throw new Error("Write a message before sending.")
+			const html = documentToHtml(draft.body)
+			if (draft.replyTo) {
+				await proxy(
+					account,
+					"microsoft_teams",
+					`https://graph.microsoft.com/v1.0/chats/${encodeURIComponent(chatId)}/messages/replyWithQuote`,
+					"POST",
+					{
+						messageIds: [draft.replyTo.id],
+						replyMessage: { body: { content: html, contentType: "html" } },
+					},
+				)
+			} else {
+				await execute(account, "MICROSOFT_TEAMS_TEAMS_POST_CHAT_MESSAGE", {
+					chat_id: chatId,
+					content: html,
+					content_type: "html",
+				})
+			}
+			await drafts.remove(chatId)
+			refreshTeams()
+		},
+	}
 }

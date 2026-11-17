@@ -1,9 +1,13 @@
 import { execFile } from "node:child_process"
 import { promisify } from "node:util"
 import { z } from "zod"
+import type { ChatDraftStore } from "@/chat-drafts"
+import { documentToText } from "@/editor"
 import {
 	readIMessageMessages as decodeMessages,
+	type IMessageApi,
 	type IMessageChat,
+	type IMessageDraft,
 	type IMessageMessage,
 	type IMessagePage,
 	imessagePageSize,
@@ -58,5 +62,31 @@ export async function readIMessageMessages(
 		if (!hasMore)
 			throw new Error("The referenced iMessage was not found in this conversation.")
 		limit *= 2
+	}
+}
+
+export function createIMessageDraftService(
+	drafts: ChatDraftStore<IMessageDraft>,
+): Pick<IMessageApi, "draft" | "saveDraft" | "sendDraft" | "discardDraft"> {
+	return {
+		discardDraft: (chatId) => drafts.remove(chatId),
+		draft: (chatId) => drafts.read(chatId),
+		saveDraft: (chatId, draft) => drafts.save(chatId, draft),
+		async sendDraft(chatId) {
+			positiveInteger.parse(chatId)
+			const draft = await drafts.read(chatId)
+			if (!draft) throw new Error("This conversation has no saved draft.")
+			const text = documentToText(draft.body)
+			if (!text.trim()) throw new Error("Write a message before sending.")
+			await executeFile("imsg", [
+				"send",
+				"--chat-id",
+				String(chatId),
+				"--text",
+				text,
+				"--json",
+			])
+			await drafts.remove(chatId)
+		},
 	}
 }

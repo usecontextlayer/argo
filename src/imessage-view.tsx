@@ -151,8 +151,7 @@ export function IMessageView() {
 			>
 				{selected && messages ? (
 					<IMessageDocument
-						title={selected.title}
-						service={selected.service}
+						chat={selected}
 						messages={messages.items}
 						highlightedId={message ?? undefined}
 						quoteHref={(id) =>

@@ -1,4 +1,10 @@
 import { z } from "zod"
+import type { EditorDocument } from "./editor.ts"
+
+export type WhatsAppDraft = {
+	body: EditorDocument
+	replyTo?: { id: string; senderId: string; sender?: string; text: string }
+}
 
 export type WhatsAppChat = {
 	id: string
@@ -30,6 +36,10 @@ export type WhatsAppContext = {
 }
 
 export type WhatsAppApi = {
+	draft(chatId: string): Promise<WhatsAppDraft | null>
+	saveDraft(chatId: string, draft: WhatsAppDraft): Promise<WhatsAppDraft>
+	sendDraft(chatId: string): Promise<void>
+	discardDraft(chatId: string): Promise<void>
 	list(page: number): Promise<WhatsAppPage<WhatsAppChat>>
 	chat(id: string): Promise<WhatsAppChat>
 	messages(chatId: string, page: number): Promise<WhatsAppPage<WhatsAppMessage>>

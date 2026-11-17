@@ -1,4 +1,7 @@
 import { z } from "zod"
+import type { EditorDocument } from "./editor.ts"
+
+export type IMessageDraft = { body: EditorDocument }
 
 export type IMessageChat = {
 	id: number
@@ -27,6 +30,10 @@ export type IMessageMessage = {
 export type IMessagePage<T> = { items: T[]; hasMore: boolean; limit: number }
 
 export type IMessageApi = {
+	draft(chatId: number): Promise<IMessageDraft | null>
+	saveDraft(chatId: number, draft: IMessageDraft): Promise<IMessageDraft>
+	sendDraft(chatId: number): Promise<void>
+	discardDraft(chatId: number): Promise<void>
 	list(limit: number): Promise<IMessagePage<IMessageChat>>
 	chat(id: number): Promise<IMessageChat>
 	messages(

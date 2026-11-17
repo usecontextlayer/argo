@@ -131,7 +131,7 @@ export function TeamsView() {
 			>
 				{selected && messages ? (
 					<TeamsDocument
-						title={selected.title}
+						chat={selected}
 						messages={messages.messages}
 						actions={
 							<Link

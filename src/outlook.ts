@@ -1,8 +1,13 @@
-import type { CalendarEvent, CalendarPage } from "@/calendar"
+import { type CalendarEvent, type CalendarPage, invitationResponse } from "@/calendar"
 import { execute } from "@/composio"
-import type { MailPage, MailThread } from "@/mail"
+import {
+	formatMailAddress,
+	type MailAddress,
+	type MailPage,
+	type MailThread,
+} from "@/mail"
 
-type Address = { address: string; name?: string }
+type Address = MailAddress
 type Recipient = { emailAddress: Address }
 type OutlookMessage = {
 	id: string
@@ -10,6 +15,11 @@ type OutlookMessage = {
 	subject: string
 	from: Recipient
 	toRecipients: Recipient[]
+	ccRecipients?: Recipient[]
+	replyTo?: Recipient[]
+	internetMessageId?: string
+	internetMessageHeaders?: { name: string; value: string }[]
+	isDraft?: boolean
 	receivedDateTime: string
 	bodyPreview: string
 	body: { contentType: string; content: string }
@@ -23,6 +33,8 @@ type OutlookEvent = {
 	end: { dateTime: string; timeZone: string }
 	isAllDay: boolean
 	isCancelled: boolean
+	isOrganizer?: boolean
+	responseStatus?: { response: string }
 	body?: { contentType: string; content: string }
 	location?: { displayName: string }
 	organizer?: Recipient
@@ -30,14 +42,10 @@ type OutlookEvent = {
 	onlineMeeting?: { joinUrl: string } | null
 }
 
-function address(value: Address) {
-	return value.name ? `${value.name} <${value.address}>` : value.address
-}
-
 function readOutlookConversation(messages: OutlookMessage[]): MailThread {
-	const ordered = [...messages].sort(
-		(a, b) => Date.parse(a.receivedDateTime) - Date.parse(b.receivedDateTime),
-	)
+	const ordered = messages
+		.filter((message) => !message.isDraft)
+		.sort((a, b) => Date.parse(a.receivedDateTime) - Date.parse(b.receivedDateTime))
 	const first = ordered[0]
 	const last = ordered.at(-1)
 	if (!first || !last) throw new Error("Outlook conversation has no messages")
@@ -45,17 +53,22 @@ function readOutlookConversation(messages: OutlookMessage[]): MailThread {
 		date: Date.parse(last.receivedDateTime),
 		id: first.conversationId,
 		messages: ordered.map((message) => ({
+			cc: (message.ccRecipients ?? []).map((recipient) => recipient.emailAddress),
 			date: Date.parse(message.receivedDateTime),
-			from: address(message.from.emailAddress),
+			from: message.from.emailAddress,
 			html: message.body.contentType.toLowerCase() === "html" ? message.body.content : "",
 			id: message.id,
+			internetMessageId: message.internetMessageId ?? "",
+			references:
+				message.internetMessageHeaders
+					?.find((header) => header.name.toLowerCase() === "references")
+					?.value.match(/<[^>]+>/g) ?? [],
+			replyTo: (message.replyTo ?? []).map((recipient) => recipient.emailAddress),
 			text: message.body.contentType.toLowerCase() === "text" ? message.body.content : "",
-			to: message.toRecipients
-				.map((recipient) => address(recipient.emailAddress))
-				.join(", "),
+			to: message.toRecipients.map((recipient) => recipient.emailAddress),
 		})),
 		participants: [
-			...new Set(ordered.map((message) => address(message.from.emailAddress))),
+			...new Set(ordered.map((message) => formatMailAddress(message.from.emailAddress))),
 		].join(", "),
 		snippet: last.bodyPreview,
 		subject: first.subject,
@@ -74,7 +87,7 @@ export async function listOutlookMail(
 		...(pageToken ? { page_token: pageToken } : {}),
 	})
 	const conversations = new Map<string, OutlookMessage[]>()
-	for (const message of result.value) {
+	for (const message of result.value.filter((message) => !message.isDraft)) {
 		const messages = conversations.get(message.conversationId) ?? []
 		messages.push(message)
 		conversations.set(message.conversationId, messages)
@@ -111,12 +124,23 @@ export async function readOutlookThread(
 function readOutlookEvent(
 	event: OutlookEvent,
 	calendar: { id: string; name: string },
+	accountEmail: string,
 ): CalendarEvent {
+	const email = accountEmail.toLowerCase()
+	const attendee = event.attendees?.find(
+		(person) => person.emailAddress.address.toLowerCase() === email,
+	)
+	const isOrganizer =
+		event.isOrganizer || event.organizer?.emailAddress.address.toLowerCase() === email
 	return {
 		attendees: event.attendees?.map((attendee) => ({
 			displayName: attendee.emailAddress.name,
 			email: attendee.emailAddress.address,
-			responseStatus: attendee.status.response,
+			responseStatus:
+				attendee.status.response === "tentativelyAccepted"
+					? "tentative"
+					: attendee.status.response,
+			self: attendee.emailAddress.address.toLowerCase() === email,
 		})),
 		calendarNames: [calendar.name],
 		description: event.body?.content,
@@ -125,7 +149,16 @@ function readOutlookEvent(
 			: { dateTime: `${event.end.dateTime}Z` },
 		hangoutLink: event.onlineMeeting?.joinUrl,
 		id: `${calendar.id}:${event.id}`,
+		invitation:
+			attendee && !isOrganizer
+				? {
+						response: invitationResponse(
+							event.responseStatus?.response ?? attendee.status.response,
+						),
+					}
+				: undefined,
 		location: event.location?.displayName,
+		native: { calendarId: calendar.id, eventId: event.id },
 		organizer: event.organizer
 			? {
 					displayName: event.organizer.emailAddress.name,
@@ -142,6 +175,7 @@ function readOutlookEvent(
 export async function listOutlookCalendar(
 	account: string,
 	month: string,
+	accountEmail: string,
 ): Promise<CalendarPage> {
 	const start = new Date(`${month}-01T00:00:00`)
 	const end = new Date(start.getFullYear(), start.getMonth() + 1, 1)
@@ -178,6 +212,8 @@ export async function listOutlookCalendar(
 							"attendees",
 							"isAllDay",
 							"isCancelled",
+							"isOrganizer",
+							"responseStatus",
 							"onlineMeeting",
 						],
 						start_datetime: start.toISOString(),
@@ -189,7 +225,7 @@ export async function listOutlookCalendar(
 				events.push(
 					...page.value
 						.filter((event) => !event.isCancelled)
-						.map((event) => readOutlookEvent(event, calendar)),
+						.map((event) => readOutlookEvent(event, calendar, accountEmail)),
 				)
 				eventPageToken = page.next_page_token ?? undefined
 			} while (eventPageToken)

@@ -1,4 +1,5 @@
-import type { MailThread } from "@/mail"
+import addressParser from "nodemailer/lib/addressparser"
+import type { MailAddress, MailThread } from "@/mail"
 
 export type GmailPart = {
 	mimeType: string
@@ -19,8 +20,15 @@ export type GmailThread = {
 	}[]
 }
 
-function header(part: GmailPart, name: string) {
+export function gmailHeader(part: GmailPart, name: string) {
 	return part.headers?.find((value) => value.name.toLowerCase() === name)?.value ?? ""
+}
+
+export function parseMailAddresses(value: string): MailAddress[] {
+	return addressParser(value, { flatten: true }).map(({ address, name }) => ({
+		address,
+		...(name ? { name } : {}),
+	}))
 }
 
 function body(part: GmailPart, mimeType: string): string {
@@ -34,9 +42,9 @@ function body(part: GmailPart, mimeType: string): string {
 }
 
 export function readGmailThread(thread: GmailThread): MailThread {
-	const messages = [...thread.messages].sort(
-		(a, b) => Number(a.internalDate) - Number(b.internalDate),
-	)
+	const messages = thread.messages
+		.filter((message) => !message.labelIds.includes("DRAFT"))
+		.sort((a, b) => Number(a.internalDate) - Number(b.internalDate))
 	const first = messages[0]
 	const last = messages.at(-1)
 	if (!first || !last) throw new Error(`Gmail conversation ${thread.id} has no messages`)
@@ -44,18 +52,24 @@ export function readGmailThread(thread: GmailThread): MailThread {
 		date: Number(last.internalDate),
 		id: thread.id,
 		messages: messages.map((message) => ({
+			cc: parseMailAddresses(gmailHeader(message.payload, "cc")),
 			date: Number(message.internalDate),
-			from: header(message.payload, "from"),
+			from: parseMailAddresses(gmailHeader(message.payload, "from"))[0] ?? {
+				address: "",
+			},
 			html: body(message.payload, "text/html"),
 			id: message.id,
+			internetMessageId: gmailHeader(message.payload, "message-id"),
+			references: gmailHeader(message.payload, "references").match(/<[^>]+>/g) ?? [],
+			replyTo: parseMailAddresses(gmailHeader(message.payload, "reply-to")),
 			text: body(message.payload, "text/plain"),
-			to: header(message.payload, "to"),
+			to: parseMailAddresses(gmailHeader(message.payload, "to")),
 		})),
 		participants: [
-			...new Set(messages.map((message) => header(message.payload, "from"))),
+			...new Set(messages.map((message) => gmailHeader(message.payload, "from"))),
 		].join(", "),
 		snippet: last.snippet,
-		subject: header(first.payload, "subject"),
+		subject: gmailHeader(first.payload, "subject"),
 		unread: messages.some((message) => message.labelIds.includes("UNREAD")),
 	}
 }

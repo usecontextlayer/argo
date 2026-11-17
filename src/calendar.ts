@@ -1,7 +1,14 @@
+import { z } from "zod"
+
 export type CalendarDate = { date?: string; dateTime?: string; timeZone?: string }
+
+export const calendarResponseSchema = z.enum(["accepted", "tentative", "declined"])
+export type CalendarResponse = z.infer<typeof calendarResponseSchema>
 
 export type CalendarEvent = {
 	id: string
+	native?: { calendarId: string; eventId: string }
+	invitation?: { response: CalendarResponse | "needsAction" }
 	summary: string
 	start: CalendarDate
 	end: CalendarDate
@@ -13,7 +20,7 @@ export type CalendarEvent = {
 		responseStatus?: string
 		self?: boolean
 	}[]
-	organizer?: { email?: string; displayName?: string }
+	organizer?: { email?: string; displayName?: string; self?: boolean }
 	hangoutLink?: string
 	calendarNames?: string[]
 }
@@ -23,6 +30,19 @@ export type CalendarPage = { events: CalendarEvent[]; timeZone: string }
 export type CalendarApi = {
 	list: (account: string, month: string) => Promise<CalendarPage>
 	refresh: () => Promise<void>
+	respond: (
+		account: string,
+		event: CalendarEvent,
+		response: CalendarResponse,
+	) => Promise<void>
+}
+
+export function invitationResponse(
+	response = "needsAction",
+): CalendarResponse | "needsAction" {
+	if (response === "tentativelyAccepted") return "tentative"
+	if (response === "none" || response === "notResponded") return "needsAction"
+	return response === "needsAction" ? response : calendarResponseSchema.parse(response)
 }
 
 declare global {

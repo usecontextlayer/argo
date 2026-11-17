@@ -168,7 +168,7 @@ export function WhatsAppView() {
 			>
 				{selected && messages ? (
 					<WhatsAppDocument
-						title={selected.title}
+						chat={selected}
 						messages={messages.items}
 						quoteHref={(id) => query({ chat, chatsPage, messagesPage, quote: id })}
 						actions={

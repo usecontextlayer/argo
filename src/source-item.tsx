@@ -91,12 +91,11 @@ function SourceContentView({
 		case "imessage":
 			return (
 				<IMessageDocument
-					service={content.service}
-					title={content.title}
+					chat={content.chat}
 					messages={content.messages}
 					highlightedId={content.messageId}
 					quoteHref={(id) =>
-						`/imessage?${new URLSearchParams({ chat: String(content.chatId), message: id })}`
+						`/imessage?${new URLSearchParams({ chat: String(content.chat.id), message: id })}`
 					}
 				/>
 			)
@@ -107,18 +106,14 @@ function SourceContentView({
 					account={content.account}
 				/>
 			)
-		case "calendar": {
-			const event = content.page.events.find((event) => event.id === content.eventId)
-			return event ? (
+		case "calendar":
+			return (
 				<EventDetails
-					event={event}
+					event={content.event}
 					account={content.account}
-					timeZone={content.page.timeZone}
+					timeZone={content.timeZone}
 				/>
-			) : (
-				<p>The referenced event is no longer in this month.</p>
 			)
-		}
 		case "granola":
 			return (
 				<div aria-busy={loading}>
@@ -141,18 +136,18 @@ function SourceContentView({
 		case "teams":
 			return (
 				<TeamsDocument
-					title={content.title}
-					messages={content.page.messages}
+					chat={content.chat}
+					messages={content.messages}
 				/>
 			)
 		case "whatsapp":
 			return (
 				<WhatsAppDocument
-					title={content.title}
+					chat={content.chat}
 					messages={content.messages}
 					highlightedId={content.messageId}
 					quoteHref={(id) =>
-						`/whatsapp?${new URLSearchParams({ chat: content.chatId, quote: id })}`
+						`/whatsapp?${new URLSearchParams({ chat: content.chat.id, quote: id })}`
 					}
 				/>
 			)

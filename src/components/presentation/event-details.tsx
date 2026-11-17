@@ -1,5 +1,8 @@
 import { CalendarDays, MapPin, Video } from "lucide-react"
-import { type CalendarEvent, eventDate } from "@/calendar"
+import { useState } from "react"
+import { useRevalidator } from "react-router"
+import { type CalendarEvent, type CalendarResponse, eventDate } from "@/calendar"
+import { Button } from "@/components/ui/button"
 import { accountProvider } from "@/provider-identity"
 import { Document, DocumentSection } from "./document"
 import { Person, SourceIdentity } from "./primitives"
@@ -24,6 +27,14 @@ export function EventDetails({
 				/>
 			}
 		>
+			{event.invitation && event.native && (
+				<InvitationResponse
+					key={`${account}:${event.id}`}
+					account={account}
+					event={event}
+					response={event.invitation.response}
+				/>
+			)}
 			<div className="grid gap-6">
 				<div className="flex items-start gap-4 wrap-anywhere">
 					<CalendarDays
@@ -93,5 +104,79 @@ export function EventDetails({
 				</DocumentSection>
 			)}
 		</Document>
+	)
+}
+
+const responseLabels = {
+	accepted: "Accepted",
+	declined: "Declined",
+	needsAction: "Not responded",
+	tentative: "Maybe",
+}
+const responseOptions: { label: string; value: CalendarResponse }[] = [
+	{ label: "Accept", value: "accepted" },
+	{ label: "Maybe", value: "tentative" },
+	{ label: "Decline", value: "declined" },
+]
+
+function InvitationResponse({
+	account,
+	event,
+	response,
+}: {
+	account: string
+	event: CalendarEvent
+	response: CalendarResponse | "needsAction"
+}) {
+	const revalidator = useRevalidator()
+	const [pending, setPending] = useState<CalendarResponse | null>(null)
+	const [error, setError] = useState<string | null>(null)
+	async function respond(value: CalendarResponse) {
+		setPending(value)
+		setError(null)
+		try {
+			await window.calendar.respond(account, event, value)
+			await revalidator.revalidate()
+		} catch (error) {
+			setError(error instanceof Error ? error.message : String(error))
+		} finally {
+			setPending(null)
+		}
+	}
+	return (
+		<section
+			className="space-y-3 rounded-lg border p-4"
+			aria-label="Invitation response"
+		>
+			<p className="text-sm text-muted-foreground">
+				Your response:{" "}
+				<span className="font-medium text-foreground">{responseLabels[response]}</span>
+			</p>
+			<div
+				className="flex flex-wrap gap-2"
+				aria-busy={pending !== null}
+			>
+				{responseOptions.map(({ label, value }) => (
+					<Button
+						key={value}
+						variant={response === value ? "default" : "outline"}
+						size="sm"
+						aria-pressed={response === value}
+						disabled={pending !== null}
+						onClick={() => void respond(value)}
+					>
+						{pending === value ? "Saving…" : label}
+					</Button>
+				))}
+			</div>
+			{error && (
+				<p
+					className="text-sm text-destructive"
+					role="alert"
+				>
+					{error}
+				</p>
+			)}
+		</section>
 	)
 }

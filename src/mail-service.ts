@@ -1,8 +1,22 @@
 import { getAccount } from "@/accounts"
 import { execute as executeTool, memoize } from "@/composio"
 import { type GmailPart, type GmailThread, readGmailThread } from "@/gmail"
-import type { MailPage, MailThread } from "@/mail"
+import {
+	createGmailDraft,
+	discardGmailDraft,
+	readGmailDraft,
+	saveGmailDraft,
+	sendGmailDraft,
+} from "@/gmail-drafts"
+import type { MailDraft, MailPage, MailThread, ReplyMode } from "@/mail"
 import { listOutlookMail, readOutlookThread } from "@/outlook"
+import {
+	createOutlookDraft,
+	discardOutlookDraft,
+	readOutlookDraft,
+	saveOutlookDraft,
+	sendOutlookDraft,
+} from "@/outlook-drafts"
 
 const pages = new Map<string, Promise<MailPage>>()
 const threads = new Map<string, Promise<MailThread>>()
@@ -17,7 +31,11 @@ async function fetchMailPage(accountId: string, pageToken?: string): Promise<Mai
 	)
 	const page = {
 		nextPageToken: result.nextPageToken,
-		threads: result.threads.map(readGmailThread),
+		threads: result.threads
+			.filter((thread) =>
+				thread.messages.some((message) => !message.labelIds.includes("DRAFT")),
+			)
+			.map(readGmailThread),
 	}
 	for (const thread of page.threads)
 		threads.set(JSON.stringify([accountId, thread.id]), Promise.resolve(thread))
@@ -64,4 +82,43 @@ export function readMailThread(account: string, id: string): Promise<MailThread>
 export function refreshMail() {
 	pages.clear()
 	threads.clear()
+}
+
+export function readMailDraft(
+	account: string,
+	threadId: string,
+): Promise<MailDraft | null> {
+	return getAccount(account).provider === "google"
+		? readGmailDraft(account, threadId)
+		: readOutlookDraft(account, threadId)
+}
+
+export function createMailDraft(
+	account: string,
+	threadId: string,
+	messageId: string,
+	mode: ReplyMode,
+): Promise<MailDraft> {
+	return getAccount(account).provider === "google"
+		? createGmailDraft(account, threadId, messageId, mode)
+		: createOutlookDraft(account, threadId, messageId, mode)
+}
+
+export function saveMailDraft(account: string, draft: MailDraft): Promise<MailDraft> {
+	return getAccount(account).provider === "google"
+		? saveGmailDraft(account, draft)
+		: saveOutlookDraft(account, draft)
+}
+
+export async function sendMailDraft(account: string, id: string): Promise<void> {
+	await (getAccount(account).provider === "google"
+		? sendGmailDraft(account, id)
+		: sendOutlookDraft(account, id))
+	refreshMail()
+}
+
+export async function discardMailDraft(account: string, id: string): Promise<void> {
+	await (getAccount(account).provider === "google"
+		? discardGmailDraft(account, id)
+		: discardOutlookDraft(account, id))
 }

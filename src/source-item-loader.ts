@@ -1,37 +1,34 @@
 import type { LoaderFunctionArgs } from "react-router"
-import type { CalendarPage } from "@/calendar"
+import type { CalendarEvent } from "@/calendar"
 import { type SourceReference, sourceReferenceSchema } from "@/doables"
 import {
 	type GranolaMeeting,
 	type GranolaTranscript,
 	readGranolaMeetings,
 } from "@/granola"
-import type { IMessageMessage } from "@/imessage"
+import type { IMessageChat, IMessageMessage } from "@/imessage"
 import type { MailThread } from "@/mail"
-import type { TeamsMessagePage } from "@/teams"
-import type { WhatsAppMessage } from "@/whatsapp"
+import type { TeamsChat, TeamsMessage } from "@/teams"
+import type { WhatsAppChat, WhatsAppMessage } from "@/whatsapp"
 import type { WorkflowyPage } from "@/workflowy"
 
 export type SourceContent =
 	| {
 			source: "imessage"
-			service: string
-			title: string
-			chatId: number
+			chat: IMessageChat
 			messages: IMessageMessage[]
 			messageId?: string
 	  }
 	| { source: "mail"; account: string; thread: MailThread }
-	| { source: "calendar"; account: string; page: CalendarPage; eventId: string }
+	| { source: "calendar"; account: string; event: CalendarEvent; timeZone: string }
 	| { source: "granola"; meeting: GranolaMeeting; transcript?: GranolaTranscript }
 	| { source: "workflowy"; page: WorkflowyPage; nodeId: string }
-	| { source: "teams"; page: TeamsMessagePage; title: string }
+	| { source: "teams"; messages: TeamsMessage[]; chat: TeamsChat }
 	| {
 			source: "whatsapp"
 			messages: WhatsAppMessage[]
 			messageId?: string
-			title: string
-			chatId: string
+			chat: WhatsAppChat
 	  }
 
 export type SourceItemResult = { content: SourceContent } | { error: string }
@@ -47,12 +44,10 @@ export async function loadSourceItem(
 				window.imessage.messages(reference.chatId, 50, reference.messageId),
 			])
 			return {
-				chatId: chat.id,
+				chat,
 				messageId: reference.messageId,
 				messages: page.items,
-				service: chat.service,
 				source: "imessage",
-				title: chat.title,
 			}
 		}
 		case "mail":
@@ -61,13 +56,17 @@ export async function loadSourceItem(
 				source: "mail",
 				thread: await window.mail.thread(reference.account, reference.threadId),
 			}
-		case "calendar":
+		case "calendar": {
+			const page = await window.calendar.list(reference.account, reference.month)
+			const event = page.events.find((item) => item.id === reference.eventId)
+			if (!event) throw new Error("The referenced event is no longer in this month.")
 			return {
 				account: reference.account,
-				eventId: reference.eventId,
-				page: await window.calendar.list(reference.account, reference.month),
+				event,
 				source: "calendar",
+				timeZone: page.timeZone,
 			}
+		}
 		case "granola": {
 			const [meeting] = readGranolaMeetings(
 				await window.granola.meeting(reference.meetingId),
@@ -93,9 +92,9 @@ export async function loadSourceItem(
 				window.teams.messages(reference.chatId),
 			])
 			return {
-				page,
+				chat,
+				messages: page.messages,
 				source: "teams",
-				title: chat.title,
 			}
 		}
 		case "whatsapp": {
@@ -103,18 +102,16 @@ export async function loadSourceItem(
 			if (reference.messageId) {
 				const context = await window.whatsapp.context(reference.messageId)
 				return {
-					chatId: chat.id,
+					chat,
 					messageId: reference.messageId,
 					messages: [...context.before, context.message, ...context.after],
 					source: "whatsapp",
-					title: chat.title,
 				}
 			}
 			return {
-				chatId: chat.id,
+				chat,
 				messages: (await window.whatsapp.messages(reference.chatId, 0)).items,
 				source: "whatsapp",
-				title: chat.title,
 			}
 		}
 	}
