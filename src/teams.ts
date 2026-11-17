@@ -18,6 +18,7 @@ export type TeamsChatPage = { chats: TeamsChat[]; nextPageToken?: string }
 export type TeamsMessagePage = { messages: TeamsMessage[]; nextPageToken?: string }
 
 export type TeamsApi = {
+	chat: (id: string) => Promise<TeamsChat>
 	list: (pageToken?: string) => Promise<TeamsChatPage>
 	messages: (chatId: string, pageToken?: string) => Promise<TeamsMessagePage>
 	refresh: () => Promise<void>

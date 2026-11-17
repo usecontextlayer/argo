@@ -1,10 +1,9 @@
 import { ChevronDown } from "lucide-react"
-import { getAccount } from "@/accounts"
 import type { MailThread as MailThreadData } from "@/mail"
+import { accountProvider } from "@/provider-identity"
 import { Document } from "./document"
 import { SourceIdentity, Timestamp } from "./primitives"
 import { SafeHtml } from "./rich-text"
-import "./documents.css"
 
 export function MailThread({
 	thread,
@@ -13,14 +12,13 @@ export function MailThread({
 	thread: MailThreadData
 	account: string
 }) {
-	const identity = getAccount(account)
 	return (
 		<Document
 			title={thread.subject || "(No subject)"}
 			identity={
 				<SourceIdentity
-					provider={identity.provider === "google" ? "gmail" : "outlook"}
-					account={identity.email}
+					provider={accountProvider(account, "mail")}
+					account={account}
 				/>
 			}
 			meta={
@@ -34,31 +32,39 @@ export function MailThread({
 				</>
 			}
 		>
-			<div className="correspondence">
+			<div>
 				{thread.messages.map((message, index) => (
 					<details
-						className="correspondence-message"
+						className="group/message border-t"
 						key={message.id}
 						open={index === thread.messages.length - 1}
 					>
-						<summary className="correspondence-summary">
+						<summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 py-5 text-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
 							<ChevronDown
-								size={16}
+								className="size-4 shrink-0 -rotate-90 text-muted-foreground group-open/message:rotate-0"
 								aria-hidden="true"
 							/>
-							<span className="correspondence-sender">{message.from}</span>
-							<span className="correspondence-excerpt">{message.text}</span>
-							<Timestamp value={message.date} />
+							<span className="font-semibold wrap-anywhere">{message.from}</span>
+							<span className="min-w-0 flex-1 truncate text-muted-foreground group-open/message:hidden">
+								{message.text}
+							</span>
+							<span className="ml-auto shrink-0 text-xs text-muted-foreground">
+								<Timestamp value={message.date} />
+							</span>
 						</summary>
-						<div className="correspondence-content">
-							<p className="correspondence-recipients">To {message.to}</p>
+						<div className="pb-8 @2xl/content:pl-7">
+							<p className="mb-6 text-sm text-muted-foreground wrap-anywhere">
+								To {message.to}
+							</p>
 							{message.html ? (
 								<SafeHtml
 									html={message.html}
 									title={`Message from ${message.from}`}
 								/>
 							) : (
-								<div className="document-plain-text">{message.text}</div>
+								<div className="whitespace-pre-wrap text-sm leading-relaxed wrap-anywhere">
+									{message.text}
+								</div>
 							)}
 						</div>
 					</details>

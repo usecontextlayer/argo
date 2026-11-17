@@ -2,20 +2,21 @@ import { ChevronDown } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { accounts } from "@/accounts"
 import { type Provider, providers } from "@/provider-identity"
-import "./presentation.css"
 
 export function ProviderIcon({
 	provider,
-	size = 18,
+	size = 16,
+	decorative = false,
 }: {
 	provider: Provider
 	size?: number
+	decorative?: boolean
 }) {
 	return (
 		<img
-			className="presentation-provider"
+			className="inline-block shrink-0 object-contain align-middle"
 			src={providers[provider].icon}
-			alt={providers[provider].name}
+			alt={decorative ? "" : providers[provider].name}
 			width={size}
 			height={size}
 		/>
@@ -23,7 +24,7 @@ export function ProviderIcon({
 }
 
 export function AccountIdentity({ account }: { account: string }) {
-	const known = accounts.find((item) => item.email === account || item.id === account)
+	const known = accounts.find((item) => item.id === account)
 	const label = known?.label ?? account
 	const initials =
 		known?.initials ??
@@ -35,11 +36,11 @@ export function AccountIdentity({ account }: { account: string }) {
 			.toUpperCase()
 	return (
 		<span
-			className="presentation-account"
+			className="inline-flex min-w-0 items-center gap-1.5"
 			title={known?.email ?? account}
 		>
 			<span
-				className="presentation-account-mark"
+				className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-foreground"
 				aria-hidden="true"
 			>
 				{initials}
@@ -57,13 +58,16 @@ export function SourceIdentity({
 	account?: string
 }) {
 	return (
-		<span className="presentation-identity">
-			<ProviderIcon provider={provider} />
+		<span className="inline-flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
+			<ProviderIcon
+				provider={provider}
+				decorative
+			/>
 			<span>{providers[provider].name}</span>
 			{account && (
 				<>
 					<span
-						className="presentation-separator"
+						className="text-muted-foreground"
 						aria-hidden="true"
 					>
 						·
@@ -77,16 +81,18 @@ export function SourceIdentity({
 
 export function Person({ name, children }: { name: string; children?: ReactNode }) {
 	return (
-		<span className="presentation-person">
+		<span className="inline-flex min-w-0 items-center gap-2">
 			<span
-				className="presentation-avatar"
+				className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground"
 				aria-hidden="true"
 			>
 				{name.trim().slice(0, 1).toUpperCase()}
 			</span>
-			<span>
-				<strong>{name}</strong>
-				{children && <small>{children}</small>}
+			<span className="min-w-0">
+				<strong className="text-sm font-medium wrap-anywhere">{name}</strong>
+				{children && (
+					<small className="block text-xs text-muted-foreground">{children}</small>
+				)}
 			</span>
 		</span>
 	)
@@ -108,7 +114,7 @@ export function Timestamp({
 	const date = new Date(value)
 	return (
 		<time
-			className="presentation-timestamp"
+			className="whitespace-nowrap tabular-nums"
 			dateTime={date.toISOString()}
 			title={dateFormats.full.format(date)}
 		>
@@ -118,7 +124,11 @@ export function Timestamp({
 }
 
 export function Metadata({ children }: { children: ReactNode }) {
-	return <div className="presentation-metadata">{children}</div>
+	return (
+		<div className="flex flex-wrap items-center gap-2 text-xs leading-relaxed text-muted-foreground">
+			{children}
+		</div>
+	)
 }
 
 export function Preview({
@@ -133,13 +143,17 @@ export function Preview({
 	identity?: ReactNode
 }) {
 	return (
-		<span className="presentation-preview">
-			{identity && <span className="presentation-preview-identity">{identity}</span>}
-			<span className="presentation-preview-heading">
-				<strong>{title}</strong>
-				{meta && <span className="presentation-preview-meta">{meta}</span>}
+		<span className="flex w-full min-w-0 flex-1 flex-col gap-1.5">
+			{identity && (
+				<span className="truncate text-xs text-muted-foreground">{identity}</span>
+			)}
+			<span className="flex min-w-0 items-baseline justify-between gap-3">
+				<strong className="min-w-0 text-sm font-medium">{title}</strong>
+				{meta && <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>}
 			</span>
-			{children && <span className="presentation-preview-content">{children}</span>}
+			{children && (
+				<span className="truncate text-xs text-muted-foreground">{children}</span>
+			)}
 		</span>
 	)
 }
@@ -160,22 +174,23 @@ export function Disclosure({
 	const [open, setOpen] = useState(defaultOpen)
 	return (
 		<details
-			className="presentation-disclosure"
+			className="border-b border-border first:border-t"
 			open={open}
 			onToggle={(event) => setOpen(event.currentTarget.open)}
 		>
-			<summary>
+			<summary className="flex cursor-pointer list-none items-center gap-3 rounded-md py-4 outline-none hover:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
 				<ChevronDown
-					className="presentation-chevron"
+					className={`size-4 shrink-0 text-muted-foreground ${open ? "" : "-rotate-90"}`}
+					aria-hidden="true"
 					size={16}
 				/>
-				<span className="presentation-disclosure-heading">
+				<span className="flex min-w-0 flex-1 flex-col gap-2 text-sm font-medium">
 					{identity}
 					{title}
 				</span>
-				{actions && <span className="presentation-disclosure-actions">{actions}</span>}
+				{actions && <span className="ml-auto shrink-0">{actions}</span>}
 			</summary>
-			{open && <div className="presentation-disclosure-body">{children}</div>}
+			{open && <div className="pb-6 @3xl/content:pl-7">{children}</div>}
 		</details>
 	)
 }

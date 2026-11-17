@@ -1,6 +1,5 @@
-import type { CSSProperties, ReactNode } from "react"
+import type { ReactNode } from "react"
 import { civilDay, scheduleDate, scheduleDays } from "./schedule-dates"
-import "./schedule.css"
 
 export type ScheduleEntry = {
 	id: string
@@ -83,34 +82,42 @@ function Schedule({ date, timeZone, entries, count }: ScheduleProps & { count: 1
 		(_, index) => index + firstHour,
 	)
 	const today = scheduleDate(new Date().toISOString(), timeZone)
+	const columns = { gridTemplateColumns: `4rem repeat(${count}, minmax(0, 1fr))` }
 	return (
 		<div
-			className={`presentation-schedule presentation-schedule-${count === 1 ? "day" : "week"}`}
-			style={{ "--schedule-days": count } as CSSProperties}
+			className={count === 1 ? "min-w-0 text-foreground" : "min-w-2xl text-foreground"}
 		>
-			<div className="schedule-heading-row">
-				<div className="schedule-timezone">
+			<div
+				className="sticky top-0 z-10 grid border-b bg-background"
+				style={columns}
+			>
+				<div className="self-end overflow-hidden px-1 py-3 text-xs text-muted-foreground">
 					{timeZone.split("/").at(-1)?.replaceAll("_", " ")}
 				</div>
 				{days.map((day) => (
 					<div
 						key={civilDay(day)}
-						className="schedule-day-heading"
+						className="group flex flex-col items-center gap-1 border-l px-1 py-3"
 						data-today={civilDay(day) === today}
 					>
-						<span>
+						<span className="text-xs text-muted-foreground">
 							{new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(day)}
 						</span>
-						<strong>{day.getDate()}</strong>
+						<strong className="flex size-8 items-center justify-center rounded-full text-xl font-semibold group-data-[today=true]:bg-primary group-data-[today=true]:text-primary-foreground">
+							{day.getDate()}
+						</strong>
 					</div>
 				))}
 			</div>
-			<div className="schedule-all-day-row">
-				<span className="schedule-axis-label">All day</span>
+			<div
+				className="grid min-h-12 border-b"
+				style={columns}
+			>
+				<span className="px-1 py-3 text-xs text-muted-foreground">All day</span>
 				{days.map((day) => (
 					<div
 						key={civilDay(day)}
-						className="schedule-all-day-cell"
+						className="min-w-0 space-y-1 border-l p-1"
 					>
 						{entries
 							.filter(
@@ -120,47 +127,44 @@ function Schedule({ date, timeZone, entries, count }: ScheduleProps & { count: 1
 									entry.end > civilDay(day),
 							)
 							.map((entry) => (
-								<div
-									className="schedule-all-day-entry"
-									key={entry.id}
-								>
-									{entry.content}
-								</div>
+								<div key={entry.id}>{entry.content}</div>
 							))}
 					</div>
 				))}
 			</div>
 			<div
-				className="schedule-time-grid"
-				style={{ height: hours.length * 72 }}
+				className="relative grid"
+				style={{ ...columns, height: hours.length * 72 }}
 			>
-				<div className="schedule-hours">
+				<div className="h-full">
 					{hours.map((hour) => (
 						<div
-							className="schedule-hour"
+							className="relative h-18"
 							key={hour}
 						>
-							<time>{String(hour).padStart(2, "0")}:00</time>
+							<time className="block pt-1 pr-2 text-right text-xs text-muted-foreground tabular-nums">
+								{String(hour).padStart(2, "0")}:00
+							</time>
 						</div>
 					))}
 				</div>
 				{days.map((day, index) => (
 					<div
-						className="schedule-day-column"
+						className="relative min-w-0 border-l"
 						key={civilDay(day)}
 					>
 						{hours.map((hour) => (
 							<div
-								className="schedule-hour-line"
+								className="h-18 border-t"
 								key={hour}
 							/>
 						))}
 						{placed[index]?.map(({ entry, start, end, lane, lanes }) => (
 							<div
 								key={entry.id}
-								className="schedule-timed-entry"
+								className="absolute min-w-0 px-0.5 py-px"
 								style={{
-									height: Math.max(25, ((end - start) / 60) * 72),
+									height: Math.max(24, ((end - start) / 60) * 72),
 									left: `${(lane / lanes) * 100}%`,
 									top: (start / 60 - firstHour) * 72,
 									width: `${100 / lanes}%`,

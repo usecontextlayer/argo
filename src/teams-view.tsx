@@ -8,14 +8,15 @@ import {
 	useRouteError,
 	useSearchParams,
 } from "react-router"
-import { getAccount } from "@/accounts"
+import { singleConnectionAccounts } from "@/accounts"
 import { TeamsDocument } from "@/components/presentation/chat"
 import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
-import type { TeamsChatPage, TeamsMessagePage } from "@/teams"
+import type { TeamsChat, TeamsChatPage, TeamsMessagePage } from "@/teams"
 
 type TeamsViewData = {
 	chats: TeamsChatPage
+	selected: TeamsChat | null
 	messages: TeamsMessagePage | null
 }
 
@@ -24,38 +25,40 @@ export async function teamsLoader({
 }: LoaderFunctionArgs): Promise<TeamsViewData> {
 	const params = new URL(request.url).searchParams
 	const chat = params.get("chat")
-	const [chats, messages] = await Promise.all([
+	const [chats, selected, messages] = await Promise.all([
 		window.teams.list(params.get("chatsPage") ?? undefined),
+		chat ? window.teams.chat(chat) : null,
 		chat ? window.teams.messages(chat, params.get("messagesPage") ?? undefined) : null,
 	])
-	return { chats, messages }
+	return { chats, messages, selected }
 }
 
 export function TeamsView() {
-	const { chats, messages } = useLoaderData() as TeamsViewData
+	const { chats, messages, selected } = useLoaderData() as TeamsViewData
 	const [params] = useSearchParams()
 	const navigation = useNavigation()
 	const revalidator = useRevalidator()
-	const selected = chats.chats.find((chat) => chat.id === params.get("chat"))
 	const chat = params.get("chat")
 	const refreshing = revalidator.state !== "idle"
+	const moreChats = new URLSearchParams(params)
+	if (chats.nextPageToken) moreChats.set("chatsPage", chats.nextPageToken)
 	function query(values: Record<string, string | undefined>) {
-		const next = new URLSearchParams({ account: "codecreators" })
+		const next = new URLSearchParams({ account: singleConnectionAccounts.teams })
 		for (const [key, value] of Object.entries(values)) if (value) next.set(key, value)
 		return `?${next}`
 	}
 	return (
-		<div className={`teams-workspace ${chat ? "has-selection" : ""}`}>
+		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside
-				className="conversation-sidebar teams-sidebar"
+				className={`flex min-h-0 w-80 shrink-0 flex-col border-r bg-muted/30 @4xl/content:w-96 @max-3xl/content:w-full @max-3xl/content:border-r-0 ${chat ? "@max-3xl/content:hidden" : ""}`}
 				aria-label="Teams chats"
 			>
-				<header className="sidebar-heading">
+				<header className="flex items-center justify-between gap-4 p-6">
 					<div>
-						<h1>Chats</h1>
+						<h1 className="mb-2 text-lg font-semibold">Chats</h1>
 						<SourceIdentity
 							provider="teams"
-							account={getAccount("codecreators").email}
+							account={singleConnectionAccounts.teams}
 						/>
 					</div>
 					<Button
@@ -71,14 +74,15 @@ export function TeamsView() {
 					</Button>
 				</header>
 				<nav
-					className="conversation-list"
+					className="min-h-0 flex-1 overflow-y-auto px-3 pb-6"
 					aria-label="Chat conversations"
 					aria-busy={navigation.state !== "idle"}
 				>
 					{chats.chats.map((item) => (
 						<Link
 							key={item.id}
-							className={`conversation-row ${chat === item.id ? "is-active" : ""}`}
+							aria-current={chat === item.id ? "page" : undefined}
+							className={`block rounded-md px-3 py-4 text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${chat === item.id ? "bg-accent" : ""}`}
 							to={query({
 								chat: item.id,
 								chatsPage: params.get("chatsPage") ?? undefined,
@@ -95,7 +99,7 @@ export function TeamsView() {
 								identity={
 									<SourceIdentity
 										provider="teams"
-										account={getAccount("codecreators").email}
+										account={singleConnectionAccounts.teams}
 									/>
 								}
 							>
@@ -107,11 +111,13 @@ export function TeamsView() {
 							</Preview>
 						</Link>
 					))}
-					{chats.chats.length === 0 && <p className="empty-list">No chats here yet.</p>}
+					{chats.chats.length === 0 && (
+						<p className="px-3 py-6 text-sm text-muted-foreground">No chats here yet.</p>
+					)}
 					{chats.nextPageToken && (
 						<Link
-							className="older-link"
-							to={query({ chatsPage: chats.nextPageToken })}
+							className="mt-4 flex items-center justify-between px-3 py-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
+							to={`?${moreChats}`}
 						>
 							More chats <span aria-hidden="true">→</span>
 						</Link>
@@ -119,17 +125,17 @@ export function TeamsView() {
 				</nav>
 			</aside>
 			<main
-				className="reading-pane teams-reader"
+				className={`min-h-0 min-w-0 flex-1 overflow-y-auto p-6 @4xl/content:p-10 ${chat ? "" : "@max-3xl/content:hidden"}`}
 				aria-label="Chat messages"
 				aria-busy={navigation.state !== "idle"}
 			>
-				{messages ? (
+				{selected && messages ? (
 					<TeamsDocument
-						title={selected?.title ?? "Conversation"}
+						title={selected.title}
 						messages={messages.messages}
 						actions={
 							<Link
-								className="back-link"
+								className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline @3xl/content:hidden"
 								to={query({ chatsPage: params.get("chatsPage") ?? undefined })}
 							>
 								← Chats
@@ -138,7 +144,7 @@ export function TeamsView() {
 					>
 						{messages.nextPageToken && (
 							<Link
-								className="teams-older"
+								className="mb-6 mr-4 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 								to={query({
 									chat: chat ?? undefined,
 									chatsPage: params.get("chatsPage") ?? undefined,
@@ -150,7 +156,7 @@ export function TeamsView() {
 						)}
 						{params.has("messagesPage") && (
 							<Link
-								className="teams-older"
+								className="mb-6 mr-4 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 								to={query({
 									chat: chat ?? undefined,
 									chatsPage: params.get("chatsPage") ?? undefined,
@@ -161,13 +167,12 @@ export function TeamsView() {
 						)}
 					</TeamsDocument>
 				) : (
-					<div className="reader-empty">
-						<MessageSquare
-							size={24}
-							strokeWidth={1.5}
-						/>
-						<h2>Pick up a conversation.</h2>
-						<p>Choose a chat to read its messages.</p>
+					<div className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center">
+						<MessageSquare size={24} />
+						<h2 className="text-xl font-semibold">Pick up a conversation.</h2>
+						<p className="max-w-prose text-sm text-muted-foreground">
+							Choose a chat to read its messages.
+						</p>
 					</div>
 				)}
 			</main>
@@ -178,11 +183,13 @@ export function TeamsView() {
 export function LoadingTeams() {
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="status"
 		>
-			<h2>Opening Teams…</h2>
-			<p>Getting chats from your CodeCreators account.</p>
+			<h2 className="text-xl font-semibold">Opening Teams…</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">
+				Getting chats from your CodeCreators account.
+			</p>
 		</main>
 	)
 }
@@ -191,11 +198,13 @@ export function TeamsError() {
 	const error = useRouteError()
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="alert"
 		>
-			<h2>Teams couldn’t load.</h2>
-			<p>{error instanceof Error ? error.message : "The Teams request failed."}</p>
+			<h2 className="text-xl font-semibold">Teams couldn’t load.</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">
+				{error instanceof Error ? error.message : "The Teams request failed."}
+			</p>
 			<Button onClick={() => window.location.reload()}>Try again</Button>
 		</main>
 	)

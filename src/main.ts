@@ -16,7 +16,12 @@ import {
 } from "@/imessage-service"
 import { listMail, readMailThread, refreshMail } from "@/mail-service"
 import { McpConnections } from "@/mcp"
-import { listTeamsChats, readTeamsMessages, refreshTeams } from "@/teams-service"
+import {
+	listTeamsChats,
+	readTeamsChat,
+	readTeamsMessages,
+	refreshTeams,
+} from "@/teams-service"
 import { createWhatsAppService } from "@/whatsapp-service"
 import { createWorkflowyService } from "@/workflowy-service"
 
@@ -77,6 +82,7 @@ app.whenReady().then(() => {
 	)
 	ipcMain.handle("workflowy:refresh", () => workflowy.refresh())
 	ipcMain.handle("teams:list", (_event, pageToken?: string) => listTeamsChats(pageToken))
+	ipcMain.handle("teams:chat", (_event, id: string) => readTeamsChat(id))
 	ipcMain.handle("teams:messages", (_event, chatId: string, pageToken?: string) =>
 		readTeamsMessages(chatId, pageToken),
 	)

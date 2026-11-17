@@ -34,12 +34,12 @@ export function WorkflowyView() {
 	)
 	return (
 		<main
-			className="workflowy-reader"
+			className="min-h-0 min-w-0 flex-1 overflow-y-auto"
 			aria-busy={navigation.state !== "idle"}
 		>
-			<header className="workflowy-toolbar">
+			<header className="flex items-center justify-between gap-4 border-b px-6 py-4">
 				<nav
-					className="workflowy-navigation"
+					className="flex items-center gap-3"
 					aria-label="Workflowy navigation"
 				>
 					<Button
@@ -52,9 +52,9 @@ export function WorkflowyView() {
 					</Button>
 					<Link
 						to="?node=root"
-						className="workflowy-home"
+						className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 					>
-						<Home size={15} /> Home
+						<Home size={16} /> Home
 					</Link>
 				</nav>
 				<Button
@@ -69,20 +69,22 @@ export function WorkflowyView() {
 					{revalidator.state !== "idle" ? "Refreshing…" : "Refresh"}
 				</Button>
 			</header>
-			<WorkflowyDocument
-				nodes={nodes}
-				target={target}
-				nodeHref={(id) => `?${new URLSearchParams({ node: id })}`}
-			>
-				{selected && selected.children > children.length && (
-					<Link
-						className="workflowy-more"
-						to={`?${new URLSearchParams({ limit: String(limit + 50), node: target })}`}
-					>
-						Show more entries
-					</Link>
-				)}
-			</WorkflowyDocument>
+			<div className="p-6 @4xl/content:p-10">
+				<WorkflowyDocument
+					nodes={nodes}
+					target={target}
+					nodeHref={(id) => `?${new URLSearchParams({ node: id })}`}
+				>
+					{selected && selected.children > children.length && (
+						<Link
+							className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
+							to={`?${new URLSearchParams({ limit: String(limit + 50), node: target })}`}
+						>
+							Show more entries
+						</Link>
+					)}
+				</WorkflowyDocument>
+			</div>
 		</main>
 	)
 }
@@ -90,11 +92,11 @@ export function WorkflowyView() {
 export function LoadingWorkflowy() {
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="status"
 		>
-			<h2>Opening Workflowy…</h2>
-			<p>Reading your outline.</p>
+			<h2 className="text-xl font-semibold">Opening Workflowy…</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">Reading your outline.</p>
 		</main>
 	)
 }
@@ -103,11 +105,13 @@ export function WorkflowyError() {
 	const error = useRouteError()
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="alert"
 		>
-			<h2>Workflowy couldn’t load.</h2>
-			<p>{error instanceof Error ? error.message : "The Workflowy read failed."}</p>
+			<h2 className="text-xl font-semibold">Workflowy couldn’t load.</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">
+				{error instanceof Error ? error.message : "The Workflowy read failed."}
+			</p>
 			<Button onClick={() => window.location.reload()}>Try again</Button>
 		</main>
 	)

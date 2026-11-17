@@ -1,10 +1,9 @@
 import { CalendarDays, MapPin, Video } from "lucide-react"
-import { getAccount } from "@/accounts"
 import { type CalendarEvent, eventDate } from "@/calendar"
+import { accountProvider } from "@/provider-identity"
 import { Document, DocumentSection } from "./document"
 import { Person, SourceIdentity } from "./primitives"
 import { HtmlContent } from "./rich-text"
-import "./documents.css"
 
 export function EventDetails({
 	event,
@@ -15,47 +14,49 @@ export function EventDetails({
 	timeZone: string
 	account: string
 }) {
-	const identity = getAccount(account)
 	return (
 		<Document
 			title={event.summary || "Untitled event"}
 			identity={
 				<SourceIdentity
-					provider={identity.provider === "google" ? "google-calendar" : "outlook"}
-					account={identity.email}
+					provider={accountProvider(account, "calendar")}
+					account={account}
 				/>
 			}
 		>
-			<div className="event-facts">
-				<div className="event-fact">
+			<div className="grid gap-6">
+				<div className="flex items-start gap-4 wrap-anywhere">
 					<CalendarDays
-						size={20}
+						className="mt-1 size-5 shrink-0 text-muted-foreground"
 						aria-hidden="true"
 					/>
 					<div>
-						<strong>{eventDate(event, timeZone)}</strong>
-						<p>
+						<strong className="text-base font-semibold">
+							{eventDate(event, timeZone)}
+						</strong>
+						<p className="mt-1 text-sm text-muted-foreground">
 							{timeZone.replaceAll("_", " ")}
 							{event.calendarNames?.length ? ` · ${event.calendarNames.join(" · ")}` : ""}
 						</p>
 					</div>
 				</div>
 				{event.location && (
-					<div className="event-fact">
+					<div className="flex items-start gap-4 wrap-anywhere">
 						<MapPin
-							size={20}
+							className="mt-1 size-5 shrink-0 text-muted-foreground"
 							aria-hidden="true"
 						/>
 						<span>{event.location}</span>
 					</div>
 				)}
 				{event.hangoutLink && (
-					<div className="event-fact">
+					<div className="flex items-start gap-4 wrap-anywhere">
 						<Video
-							size={20}
+							className="mt-1 size-5 shrink-0 text-muted-foreground"
 							aria-hidden="true"
 						/>
 						<a
+							className="underline underline-offset-4"
 							href={event.hangoutLink}
 							target="_blank"
 							rel="noreferrer"
@@ -74,7 +75,7 @@ export function EventDetails({
 			)}
 			{Boolean(event.attendees?.length) && (
 				<DocumentSection title="Guests">
-					<ul className="event-people">
+					<ul className="m-0 flex list-none flex-wrap gap-x-8 gap-y-6 p-0">
 						{event.attendees?.map((attendee) => (
 							<li key={attendee.email}>
 								<Person name={attendee.displayName || attendee.email}>
@@ -88,9 +89,7 @@ export function EventDetails({
 			)}
 			{event.description && (
 				<DocumentSection title="Details">
-					<div className="presentation-prose">
-						<HtmlContent html={event.description} />
-					</div>
+					<HtmlContent html={event.description} />
 				</DocumentSection>
 			)}
 		</Document>

@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useFetcher } from "react-router"
-import { getAccount } from "@/accounts"
+import { singleConnectionAccounts } from "@/accounts"
 import {
 	IMessageDocument,
 	TeamsDocument,
@@ -9,31 +9,24 @@ import {
 } from "@/components/presentation/chat"
 import { EventDetails } from "@/components/presentation/event-details"
 import { MailThread } from "@/components/presentation/mail-thread"
-import { MeetingNotes } from "@/components/presentation/meeting-notes"
+import {
+	MeetingNotes,
+	type MeetingSection,
+} from "@/components/presentation/meeting-notes"
 import { WorkflowyDocument } from "@/components/presentation/outline"
 import { Disclosure, SourceIdentity } from "@/components/presentation/primitives"
 import { type SourceReference, sourceHref } from "@/doables"
-import {
-	accountProvider,
-	type Provider,
-	singleConnectionAccounts,
-} from "@/provider-identity"
+import { sourceProvider } from "@/provider-identity"
 import {
 	type SourceContent,
 	type SourceItemResult,
 	sourceItemHref,
 } from "@/source-item-loader"
 
-export function sourceProvider(reference: SourceReference): Provider {
-	return "account" in reference
-		? accountProvider(reference.account, reference.source)
-		: reference.source
-}
-
 export function SourceReferenceIdentity({ reference }: { reference: SourceReference }) {
 	const account =
 		"account" in reference
-			? getAccount(reference.account).email
+			? reference.account
 			: singleConnectionAccounts[reference.source]
 	return (
 		<SourceIdentity
@@ -65,7 +58,7 @@ export function SourceItem({ reference }: { reference: SourceReference }) {
 
 function LoadedSourceItem({ reference }: { reference: SourceReference }) {
 	const fetcher = useFetcher<SourceItemResult>()
-	const [section, setSection] = useState<"summary" | "notes" | "transcript">("summary")
+	const [section, setSection] = useState<MeetingSection>("summary")
 	const href = sourceItemHref(reference, section === "transcript")
 	const { load } = fetcher
 	useEffect(() => {
@@ -90,8 +83,8 @@ function SourceContentView({
 	loading,
 }: {
 	content: SourceContent
-	section: "summary" | "notes" | "transcript"
-	onSectionChange: (section: "summary" | "notes" | "transcript") => void
+	section: MeetingSection
+	onSectionChange: (section: MeetingSection) => void
 	loading: boolean
 }) {
 	switch (content.source) {

@@ -87,12 +87,17 @@ export async function loadSourceItem(
 				page: await window.workflowy.read(reference.nodeId, 50),
 				source: "workflowy",
 			}
-		case "teams":
+		case "teams": {
+			const [chat, page] = await Promise.all([
+				window.teams.chat(reference.chatId),
+				window.teams.messages(reference.chatId),
+			])
 			return {
-				page: await window.teams.messages(reference.chatId),
+				page,
 				source: "teams",
-				title: reference.label,
+				title: chat.title,
 			}
+		}
 		case "whatsapp": {
 			const chat = await window.whatsapp.chat(reference.chatId)
 			if (reference.messageId) {

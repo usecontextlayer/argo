@@ -1,6 +1,7 @@
 import { z } from "zod"
+import { accounts, singleConnectionAccounts } from "./accounts.ts"
 
-const account = z.enum(["feerasta", "eightzerothree", "gmail", "codecreators", "alnu"])
+const account = z.enum(accounts.map((account) => account.id))
 const label = z.string().min(1)
 export const sourceReferenceSchema = z.discriminatedUnion("source", [
 	z.object({ account, label, source: z.literal("mail"), threadId: z.string().min(1) }),
@@ -46,7 +47,7 @@ export function sourceHref(reference: SourceReference): string {
 		case "calendar":
 			return `/calendar?${new URLSearchParams({ account: reference.account, event: reference.eventId, month: reference.month })}`
 		case "teams":
-			return `/teams?${new URLSearchParams({ account: "codecreators", chat: reference.chatId })}`
+			return `/teams?${new URLSearchParams({ account: singleConnectionAccounts.teams, chat: reference.chatId })}`
 		case "whatsapp":
 			return `/whatsapp?${new URLSearchParams({ chat: reference.chatId, ...(reference.messageId ? { quote: reference.messageId } : {}) })}`
 		case "imessage":

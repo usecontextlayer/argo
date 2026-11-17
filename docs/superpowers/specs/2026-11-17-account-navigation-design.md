@@ -13,6 +13,7 @@ The current shell mixes accounts, applications, and Doables as peer tabs, then e
 - Group accounts by provider, with the provider icon and name shown once in the group heading.
 - Group headings are visual labels, not destinations or expandable navigation levels. Each account destination is directly clickable.
 - Keep providers distinct: Gmail and Outlook do not share a Mail group.
+- Keep mail and calendar in separate groups for both Google and Outlook. Account rows show only the account identity; the group heading supplies the service.
 - Treat providers with a single account exactly like providers with several accounts.
 - Keep the existing account labels and initials in account rows; do not repeat the provider icon on every row.
 - Keep the current content views, their functional headings, Refresh controls, and date or month navigation.
@@ -28,14 +29,15 @@ The existing provider identities and account definitions supply the sidebar. Eac
 | App-wide section | Doables | `/doables` |
 | Gmail | Feerasta, 803, Personal | `/mail?account=<id>` for each Google account |
 | Google Calendar | Feerasta, 803, Personal | `/calendar?account=<id>` for each Google account |
-| Outlook | CodeCreators · Mail, CodeCreators · Calendar, ALNU · Mail, ALNU · Calendar | `/mail?account=<id>` or `/calendar?account=<id>` for each Microsoft account |
+| Outlook Mail | CodeCreators, ALNU | `/mail?account=<id>` for each Microsoft account |
+| Outlook Calendar | CodeCreators, ALNU | `/calendar?account=<id>` for each Microsoft account |
 | Teams | CodeCreators | `/teams?account=codecreators` |
 | Granola | Feerasta | `/granola` |
 | WhatsApp | Personal | `/whatsapp` |
 | iMessage | Personal | `/imessage` |
 | Workflowy | Personal | `/workflowy` |
 
-Outlook supplies both mail and calendar under one existing provider identity. Its account entries therefore include a Mail or Calendar qualifier so both destinations remain direct links under one provider heading. No nested navigation is introduced.
+Outlook Mail and Outlook Calendar are separate groups that share the existing Outlook provider artwork. Each contains its own direct account links, matching the separation between Gmail and Google Calendar. No nested navigation is introduced.
 
 Retain the existing account order within each provider. Show the mail and calendar providers first, followed by Teams, Granola, WhatsApp, iMessage, and Workflowy. Keep the Argo wordmark in the sidebar and retain its current home-link behavior.
 
@@ -45,13 +47,21 @@ The sidebar sits beside the existing workspace. A conversation-based workspace c
 
 The selected link reflects the current route and account. Mail and calendar links for the same account must be independently selectable. Opening a thread, meeting, chat, or source item keeps its owning destination selected. Doables remains a peer destination rather than an account or provider.
 
-Use semantic navigation with ordinary links and the existing active-link styling conventions. Provider headings supply visual grouping; keyboard users reach each destination directly. Preserve the existing typography, colors, provider artwork, and account identity presentation.
+Opening an item preserves its list context, including an older mail page or a historical meeting month. Paging the conversation list preserves the current reader's message anchor and history position. The list and reader can be navigated independently without resetting one another.
+
+The reader obtains its selected item's identity independently of the visible list page. For Teams, the selected chat has its own metadata read, sharing the same normalized chat cache as list results, so paging the list cannot replace its title with a generic label.
+
+Switching between calendar accounts retains the displayed date and day/week view, including when that date was inferred from an opened event. The date is the calendar navigation cursor; its month is derived rather than stored alongside it. Source links may supply a month to locate an event before its date is known. Closing that event preserves the resolved date. The selected event belongs to its original account and is not carried into the destination account.
+
+Use semantic navigation with ordinary links and a clear active state. Provider headings supply visual grouping; keyboard users reach each destination directly. Preserve provider artwork and account identities. Follow [the styling conventions](../../styling.md) for stock Tailwind scales and shadcn components; visual consistency takes precedence over the previous custom typography, colors, and measurements.
 
 ## Implementation shape
 
 React Router already owns navigation, nested content, and route loading. Replace the `AppShell` tab controls with `NavLink` destinations and render the existing `Outlet` beside the sidebar. Derive active state from the router and current account parameter rather than storing another selected-account state.
 
-Use `accounts`, `providers`, and `singleConnectionAccounts` as the existing identity sources. The sidebar needs only a small presentation of groups and destinations; it does not need a connection registry, new backend APIs, or changes to the account data model. Remove shell-specific tab handling and CSS that the sidebar replaces. Preserve tabs inside content views where they switch actual content, such as meeting summaries and transcripts.
+Use `accounts` and `singleConnectionAccounts` from the account configuration, and `providers` for provider presentation. Account IDs remain the identity through rendering; email addresses are display information. Reference validation derives account membership from the same account configuration. Keep account records and destination paths separate in the navigation data; serialize query parameters only when rendering a link. Read the active calendar route's loader data to preserve its displayed date and view. The sidebar needs only a small presentation of groups and destinations; it does not introduce a connection registry or change the account data model. Remove shell-specific tab handling and CSS that the sidebar replaces. Preserve tabs inside content views where they switch actual content, such as meeting summaries and transcripts.
+
+Workspace layout breakpoints use the content area's width after accounting for the sidebar. This includes the calendar's event-detail layout and Doables' compact spacing.
 
 Existing routes, loaders, refresh actions, loading views, and error boundaries remain responsible for content behavior. This pass does not change synchronization or connected-service behavior.
 

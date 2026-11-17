@@ -8,6 +8,7 @@ import {
 	useRouteError,
 	useSearchParams,
 } from "react-router"
+import { singleConnectionAccounts } from "@/accounts"
 import { IMessageDocument } from "@/components/presentation/chat"
 import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
 import { Button } from "@/components/ui/button"
@@ -51,6 +52,8 @@ export function IMessageView() {
 	const chat = params.get("chat")
 	const message = params.get("message")
 	const refreshing = revalidator.state !== "idle"
+	const moreChats = new URLSearchParams(params)
+	moreChats.set("chatsLimit", String(chats.limit + imessagePageSize))
 	function query(values: Record<string, string | number | null>) {
 		const next = new URLSearchParams()
 		for (const [key, value] of Object.entries(values))
@@ -58,17 +61,17 @@ export function IMessageView() {
 		return `?${next}`
 	}
 	return (
-		<div className={`chat-workspace ${chat ? "has-selection" : ""}`}>
+		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside
-				className="conversation-sidebar chat-sidebar"
+				className={`flex min-h-0 w-80 shrink-0 flex-col border-r bg-muted/30 @4xl/content:w-96 @max-3xl/content:w-full @max-3xl/content:border-r-0 ${chat ? "@max-3xl/content:hidden" : ""}`}
 				aria-label="iMessage chats"
 			>
-				<header className="sidebar-heading">
+				<header className="flex items-center justify-between gap-4 p-6">
 					<div>
-						<h1>Chats</h1>
+						<h1 className="mb-2 text-lg font-semibold">Chats</h1>
 						<SourceIdentity
 							provider="imessage"
-							account="Personal"
+							account={singleConnectionAccounts.imessage}
 						/>
 					</div>
 					<Button
@@ -81,14 +84,15 @@ export function IMessageView() {
 					</Button>
 				</header>
 				<nav
-					className="conversation-list"
+					className="min-h-0 flex-1 overflow-y-auto px-3 pb-6"
 					aria-label="iMessage conversations"
 					aria-busy={navigation.state !== "idle"}
 				>
 					{chats.items.map((item) => (
 						<Link
 							key={item.id}
-							className={`conversation-row ${Number(chat) === item.id ? "is-active" : ""}`}
+							aria-current={Number(chat) === item.id ? "page" : undefined}
+							className={`block rounded-md px-3 py-4 text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${Number(chat) === item.id ? "bg-accent" : ""}`}
 							to={query({ chat: item.id, chatsLimit: chats.limit })}
 						>
 							<Preview
@@ -96,7 +100,7 @@ export function IMessageView() {
 									<>
 										{item.unread && (
 											<span
-												className="unread-dot"
+												className="mr-2 inline-block size-1.5 shrink-0 rounded-full bg-primary align-middle"
 												role="img"
 												aria-label="Unread"
 											/>
@@ -113,7 +117,7 @@ export function IMessageView() {
 								identity={
 									<SourceIdentity
 										provider="imessage"
-										account="Personal"
+										account={singleConnectionAccounts.imessage}
 									/>
 								}
 							>
@@ -121,10 +125,15 @@ export function IMessageView() {
 							</Preview>
 						</Link>
 					))}
-					{chats.items.length === 0 && <p className="empty-list">No chats here yet.</p>}
+					{chats.items.length === 0 && (
+						<p className="px-3 py-6 text-sm text-muted-foreground">No chats here yet.</p>
+					)}
 					{chats.hasMore && (
-						<div className="chat-page-links">
-							<Link to={query({ chat, chatsLimit: chats.limit + imessagePageSize })}>
+						<div className="flex flex-wrap items-center justify-between gap-4 px-3 py-6">
+							<Link
+								className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
+								to={`?${moreChats}`}
+							>
 								More chats{" "}
 								<ArrowRight
 									size={14}
@@ -136,7 +145,7 @@ export function IMessageView() {
 				</nav>
 			</aside>
 			<main
-				className="reading-pane chat-reader"
+				className={`min-h-0 min-w-0 flex-1 overflow-y-auto p-6 @4xl/content:p-10 ${chat ? "" : "@max-3xl/content:hidden"}`}
 				aria-label="iMessage messages"
 				aria-busy={navigation.state !== "idle"}
 			>
@@ -151,7 +160,7 @@ export function IMessageView() {
 						}
 						actions={
 							<Link
-								className="back-link"
+								className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline @3xl/content:hidden"
 								to={query({ chatsLimit: chats.limit })}
 							>
 								← Chats
@@ -160,11 +169,12 @@ export function IMessageView() {
 					>
 						{(messages.hasMore || messages.limit > imessagePageSize || message) && (
 							<nav
-								className="chat-message-pages"
+								className="flex flex-wrap items-center gap-4 py-6"
 								aria-label="Message history"
 							>
 								{messages.hasMore && (
 									<Link
+										className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 										to={query({
 											chat,
 											chatsLimit: chats.limit,
@@ -180,7 +190,10 @@ export function IMessageView() {
 									</Link>
 								)}
 								{(messages.limit > imessagePageSize || message) && (
-									<Link to={query({ chat, chatsLimit: chats.limit })}>
+									<Link
+										className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
+										to={query({ chat, chatsLimit: chats.limit })}
+									>
 										Latest messages
 									</Link>
 								)}
@@ -188,14 +201,15 @@ export function IMessageView() {
 						)}
 					</IMessageDocument>
 				) : (
-					<div className="reader-empty">
+					<div className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center">
 						<MessageSquare
 							size={24}
-							strokeWidth={1.5}
 							aria-hidden="true"
 						/>
-						<h2>Pick up a conversation.</h2>
-						<p>Choose an iMessage chat to read its messages.</p>
+						<h2 className="text-xl font-semibold">Pick up a conversation.</h2>
+						<p className="max-w-prose text-sm text-muted-foreground">
+							Choose an iMessage chat to read its messages.
+						</p>
 					</div>
 				)}
 			</main>
@@ -206,11 +220,13 @@ export function IMessageView() {
 export function LoadingIMessage() {
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="status"
 		>
-			<h2>Opening iMessage…</h2>
-			<p>Reading Messages on this Mac.</p>
+			<h2 className="text-xl font-semibold">Opening iMessage…</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">
+				Reading Messages on this Mac.
+			</p>
 		</main>
 	)
 }
@@ -219,11 +235,13 @@ export function IMessageError() {
 	const error = useRouteError()
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="alert"
 		>
-			<h2>iMessage couldn’t load.</h2>
-			<p>{error instanceof Error ? error.message : "The iMessage read failed."}</p>
+			<h2 className="text-xl font-semibold">iMessage couldn’t load.</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">
+				{error instanceof Error ? error.message : "The iMessage read failed."}
+			</p>
 			<Button onClick={() => window.location.reload()}>Try again</Button>
 		</main>
 	)

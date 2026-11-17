@@ -1,4 +1,5 @@
 import { getAccount } from "@/accounts"
+import type { SourceReference } from "@/doables"
 
 export const providers = {
 	argo: { icon: new URL("../assets/argo-icon.png", import.meta.url).href, name: "Argo" },
@@ -46,10 +47,8 @@ export function accountProvider(accountId: string, kind: "mail" | "calendar"): P
 			: "google-calendar"
 }
 
-export const singleConnectionAccounts = {
-	granola: "alizain@feerasta.net",
-	imessage: "Personal",
-	teams: "azain.c@codecreators.ca",
-	whatsapp: "Personal",
-	workflowy: "Personal",
-} as const
+export function sourceProvider(reference: SourceReference): Provider {
+	return "account" in reference
+		? accountProvider(reference.account, reference.source)
+		: reference.source
+}

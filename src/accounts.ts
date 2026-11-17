@@ -51,3 +51,11 @@ export function getAccount(id: string) {
 	if (!account) throw new Error(`Unknown account: ${id}`)
 	return account
 }
+
+export const singleConnectionAccounts = {
+	granola: "feerasta",
+	imessage: "Personal",
+	teams: "codecreators",
+	whatsapp: "Personal",
+	workflowy: "Personal",
+} as const

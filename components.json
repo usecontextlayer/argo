@@ -11,7 +11,7 @@
 	"rsc": false,
 	"style": "base-nova",
 	"tailwind": {
-		"baseColor": "slate",
+		"baseColor": "neutral",
 		"config": "",
 		"css": "src/index.css",
 		"cssVariables": true,

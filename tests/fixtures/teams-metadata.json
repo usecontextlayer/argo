@@ -1,0 +1,73 @@
+{
+	"chat": {
+		"@odata.context": "fixture-@odata.context",
+		"chatType": "oneOnOne",
+		"createdDateTime": "2023-11-14T22:13:20.000Z",
+		"id": "selected-chat",
+		"isHiddenForAllMembers": false,
+		"lastUpdatedDateTime": "2023-11-14T22:14:20.000Z",
+		"onlineMeetingInfo": null,
+		"tenantId": "fixture-tenantId",
+		"topic": null,
+		"viewpoint": {
+			"isHidden": false,
+			"lastMessageReadDateTime": "2023-11-14T22:13:20.000Z"
+		},
+		"webUrl": "fixture-webUrl"
+	},
+	"list": {
+		"@odata.context": "fixture-@odata.context",
+		"@odata.count": 0,
+		"next_page_token": "fixture-next_page_token",
+		"value": [
+			{
+				"chatType": "group",
+				"createdDateTime": "2023-11-14T22:13:20.000Z",
+				"display_url": "fixture-display_url",
+				"id": "identity-1",
+				"isHiddenForAllMembers": false,
+				"lastUpdatedDateTime": "2023-11-14T22:13:20.000Z",
+				"onlineMeetingInfo": null,
+				"tenantId": "fixture-tenantId",
+				"topic": "Team planning",
+				"viewpoint": {
+					"isHidden": false,
+					"lastMessageReadDateTime": "2023-11-14T22:13:20.000Z"
+				},
+				"webUrl": "fixture-webUrl"
+			},
+			{
+				"chatType": "oneOnOne",
+				"createdDateTime": "2023-11-14T22:13:20.000Z",
+				"display_url": "fixture-display_url",
+				"id": "selected-chat",
+				"isHiddenForAllMembers": false,
+				"lastUpdatedDateTime": "2023-11-14T22:14:20.000Z",
+				"onlineMeetingInfo": null,
+				"tenantId": "fixture-tenantId",
+				"topic": null,
+				"viewpoint": {
+					"isHidden": false,
+					"lastMessageReadDateTime": "2023-11-14T22:13:20.000Z"
+				},
+				"webUrl": "fixture-webUrl"
+			}
+		]
+	},
+	"members": {
+		"@odata.context": "fixture-@odata.context",
+		"@odata.count": 0,
+		"value": [
+			{
+				"@odata.type": "fixture-@odata.type",
+				"displayName": "Ada",
+				"email": "reader@example.test",
+				"id": "identity-2",
+				"roles": ["fixture-roles"],
+				"tenantId": "fixture-tenantId",
+				"userId": "other-user",
+				"visibleHistoryStartDateTime": "2023-11-14T22:13:20.000Z"
+			}
+		]
+	}
+}

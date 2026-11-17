@@ -20,6 +20,7 @@ import {
 } from "@/components/presentation/schedule-dates"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/utils"
 import { accountProvider } from "@/provider-identity"
 
 export function currentMonth() {
@@ -27,7 +28,6 @@ export function currentMonth() {
 }
 
 type CalendarViewData = CalendarPage & {
-	month: string
 	day: string
 	view: "day" | "week"
 }
@@ -36,7 +36,7 @@ export async function calendarLoader({
 	request,
 }: LoaderFunctionArgs): Promise<CalendarViewData> {
 	const params = new URL(request.url).searchParams
-	const month = params.get("month") ?? params.get("date")?.slice(0, 7) ?? currentMonth()
+	const month = params.get("date")?.slice(0, 7) ?? params.get("month") ?? currentMonth()
 	const account = params.get("account") ?? "feerasta"
 	const page = await window.calendar.list(account, month)
 	const selected = page.events.find((event) => event.id === params.get("event"))
@@ -70,13 +70,12 @@ export async function calendarLoader({
 					.map((event) => [event.id, event]),
 			).values(),
 		],
-		month,
 		view,
 	}
 }
 
 export function CalendarView() {
-	const { events, timeZone, month, day, view } = useLoaderData() as CalendarViewData
+	const { events, timeZone, day, view } = useLoaderData() as CalendarViewData
 	const [params, setParams] = useSearchParams()
 	const account = params.get("account") ?? "feerasta"
 	const navigation = useNavigation()
@@ -96,19 +95,25 @@ export function CalendarView() {
 	function navigateDate(offset: number) {
 		const next = new Date(date)
 		next.setDate(next.getDate() + offset)
-		setParams({ account, date: civilDay(next), month: civilDay(next).slice(0, 7), view })
+		setParams({ account, date: civilDay(next), view })
 	}
 	const entries: ScheduleEntry[] = events.map((event) => ({
 		allDay: Boolean(event.start.date),
 		content: (
 			<Link
-				className="schedule-event-link"
+				className="flex h-full flex-col gap-1 overflow-hidden rounded-md border bg-secondary px-2 py-1.5 text-secondary-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-[current=true]:outline-2 aria-[current=true]:-outline-offset-2 aria-[current=true]:outline-ring"
 				aria-current={selected?.id === event.id ? "true" : undefined}
-				to={`?${new URLSearchParams({ account, date: day, event: event.id, month, view })}`}
+				to={`?${new URLSearchParams({ account, date: day, event: event.id, view })}`}
 			>
-				<strong>{event.summary || "Untitled event"}</strong>
-				<time>{eventTime(event, timeZone)}</time>
-				<small>{event.calendarNames?.join(" · ")}</small>
+				<strong className="text-xs leading-snug font-semibold wrap-anywhere">
+					{event.summary || "Untitled event"}
+				</strong>
+				<time className="text-xs leading-snug text-muted-foreground">
+					{eventTime(event, timeZone)}
+				</time>
+				<small className="text-xs leading-snug text-muted-foreground">
+					{event.calendarNames?.join(" · ")}
+				</small>
 			</Link>
 		),
 		end: event.end.date ?? (event.end.dateTime as string),
@@ -116,28 +121,34 @@ export function CalendarView() {
 		start: event.start.date ?? (event.start.dateTime as string),
 	}))
 	return (
-		<div className="calendar-presentation-workspace">
+		<div className="flex min-h-0 min-w-0 flex-1">
 			<section
-				className="calendar-presentation-main"
+				className={cn(
+					"min-w-0 flex-1 overflow-auto",
+					selected && "@max-4xl/content:hidden",
+				)}
 				aria-label="Calendar"
 				aria-busy={navigation.state !== "idle"}
 			>
-				<header className="calendar-presentation-heading">
-					<div>
-						<h1>{title}</h1>
+				<header className="flex flex-wrap items-center justify-between gap-4 border-b p-6">
+					<div className="space-y-2">
+						<h1 className="text-xl font-semibold tracking-tight">{title}</h1>
 						<SourceIdentity
 							provider={accountProvider(account, "calendar")}
 							account={account}
 						/>
-						<p>All calendars · {timeZone.replaceAll("_", " ")}</p>
+						<p className="text-xs text-muted-foreground">
+							All calendars · {timeZone.replaceAll("_", " ")}
+						</p>
 					</div>
-					<div className="calendar-presentation-controls">
+					<div className="flex flex-wrap items-center gap-2">
 						<Tabs
 							value={view}
 							onValueChange={(value) => {
 								const next = new URLSearchParams(params)
 								next.set("view", String(value))
 								next.set("date", day)
+								next.delete("month")
 								setParams(next)
 							}}
 						>
@@ -152,14 +163,14 @@ export function CalendarView() {
 							aria-label={view === "day" ? "Previous day" : "Previous week"}
 							onClick={() => navigateDate(view === "day" ? -1 : -7)}
 						>
-							<ChevronLeft size={17} />
+							<ChevronLeft />
 						</Button>
 						<Button
 							variant="outline"
 							size="sm"
 							onClick={() => {
 								const today = civilDay(new Date())
-								setParams({ account, date: today, month: today.slice(0, 7), view })
+								setParams({ account, date: today, view })
 							}}
 						>
 							Today
@@ -170,7 +181,7 @@ export function CalendarView() {
 							aria-label={view === "day" ? "Next day" : "Next week"}
 							onClick={() => navigateDate(view === "day" ? 1 : 7)}
 						>
-							<ChevronRight size={17} />
+							<ChevronRight />
 						</Button>
 						<Button
 							variant="outline"
@@ -201,27 +212,31 @@ export function CalendarView() {
 			</section>
 			{selected && (
 				<main
-					className="calendar-presentation-detail"
+					className="w-2/5 min-w-sm max-w-2xl overflow-auto border-l @max-4xl/content:w-full @max-4xl/content:min-w-0 @max-4xl/content:max-w-none @max-4xl/content:border-l-0"
 					aria-label="Event details"
 				>
-					<div className="calendar-presentation-close">
+					<div className="px-6 pt-4">
 						<Button
 							variant="ghost"
 							size="sm"
 							onClick={() => {
 								const next = new URLSearchParams(params)
 								next.delete("event")
+								next.delete("month")
+								next.set("date", day)
 								setParams(next)
 							}}
 						>
-							<X size={16} /> Close event
+							<X /> Close event
 						</Button>
 					</div>
-					<EventDetails
-						event={selected}
-						timeZone={timeZone}
-						account={account}
-					/>
+					<div className="p-6">
+						<EventDetails
+							event={selected}
+							timeZone={timeZone}
+							account={account}
+						/>
+					</div>
 				</main>
 			)}
 		</div>
@@ -233,11 +248,13 @@ export function LoadingCalendar() {
 	const account = getAccount(params.get("account") ?? "feerasta")
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full flex-1 flex-col items-center justify-center gap-4 p-12 text-center"
 			role="status"
 		>
-			<h2>Opening your calendar…</h2>
-			<p>Getting events from {account.email}.</p>
+			<h2 className="text-xl font-semibold">Opening your calendar…</h2>
+			<p className="text-sm text-muted-foreground">
+				Getting events from {account.email}.
+			</p>
 		</main>
 	)
 }
@@ -246,11 +263,13 @@ export function CalendarError() {
 	const error = useRouteError()
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full flex-1 flex-col items-center justify-center gap-4 p-12 text-center"
 			role="alert"
 		>
-			<h2>Calendar couldn’t load.</h2>
-			<p>{error instanceof Error ? error.message : "The calendar request failed."}</p>
+			<h2 className="text-xl font-semibold">Calendar couldn’t load.</h2>
+			<p className="text-sm text-muted-foreground">
+				{error instanceof Error ? error.message : "The calendar request failed."}
+			</p>
 			<Button onClick={() => window.location.reload()}>Try again</Button>
 		</main>
 	)

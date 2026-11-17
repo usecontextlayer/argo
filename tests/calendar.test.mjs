@@ -1,8 +1,25 @@
 import assert from "node:assert/strict"
-import test from "node:test"
-import { eventDate, eventTime, groupCalendarEvents, monthLink } from "../src/calendar.ts"
+import { after, before, test } from "node:test"
+import { createServer } from "vite"
+import { eventDate, eventTime, monthLink } from "../src/calendar.ts"
+import { sourceHref } from "../src/doables.ts"
 
 const timeZone = "America/Toronto"
+let server
+let calendarLoader
+
+before(async () => {
+	server = await createServer({
+		appType: "custom",
+		configFile: "vite.renderer.config.mts",
+		server: { middlewareMode: true, ws: false },
+	})
+	;({ calendarLoader } = await server.ssrLoadModule("/src/calendar-view.tsx"))
+})
+
+after(async () => {
+	await server?.close()
+})
 
 test("all-day details show the inclusive last day and keep a single day concise", () => {
 	const day = new Intl.DateTimeFormat(undefined, { dateStyle: "full" })
@@ -45,52 +62,110 @@ test("timed labels use the calendar date and time even across a source date boun
 	assert.equal(eventDate(event, timeZone), `${date.format(start)} – ${date.format(end)}`)
 })
 
-test("agenda groups calendar days chronologically with all-day events before timed events", () => {
-	const events = [
-		{
-			end: { dateTime: "2026-11-17T02:30:00+01:00" },
-			id: "evening",
-			start: { dateTime: "2026-11-17T01:30:00+01:00" },
-			summary: "Evening call",
-		},
-		{
-			end: { dateTime: "2026-11-16T09:00:00-05:00" },
-			id: "morning",
-			start: { dateTime: "2026-11-16T08:00:00-05:00" },
-			summary: "Morning call",
-		},
-		{
-			end: { date: "2026-11-18" },
-			id: "tomorrow",
-			start: { date: "2026-11-17" },
-			summary: "Tomorrow",
-		},
-		{
-			end: { dateTime: "2026-11-16T12:00:00+01:00" },
-			id: "early",
-			start: { dateTime: "2026-11-16T11:00:00+01:00" },
-			summary: "Early call",
-		},
-		{
-			end: { date: "2026-11-17" },
-			id: "all-day",
-			start: { date: "2026-11-16" },
-			summary: "All-day plans",
-		},
-	]
-	assert.deepEqual(
-		groupCalendarEvents(events, timeZone).map(([day, group]) => [
-			day,
-			group.map((event) => event.id),
-		]),
-		[
-			["2026-11-16", ["all-day", "early", "morning", "evening"]],
-			["2026-11-17", ["tomorrow"]],
-		],
-	)
-})
-
 test("month navigation crosses year boundaries in either direction", () => {
 	assert.equal(monthLink("2026-12", 1), "?month=2027-01")
 	assert.equal(monthLink("2027-01", -1), "?month=2026-12")
+})
+
+test("a calendar date selects its month even when the URL has a stale month hint", async (t) => {
+	const selected = {
+		end: { date: "2027-01-09" },
+		id: "january-event",
+		start: { date: "2027-01-08" },
+		summary: "January plans",
+	}
+	const pages = {
+		alnu: {
+			"2026-12": { events: [], timeZone: "Asia/Tokyo" },
+			"2027-01": { events: [selected], timeZone },
+		},
+	}
+	globalThis.window = {
+		calendar: { list: async (account, month) => pages[account][month] },
+	}
+	t.after(() => {
+		delete globalThis.window
+	})
+
+	const data = await calendarLoader({
+		request: new Request(
+			"https://argo.test/calendar?account=alnu&date=2027-01-08&month=2026-12&view=day",
+		),
+	})
+
+	assert.equal(data.day, "2027-01-08")
+	assert.equal(data.view, "day")
+	assert.equal(data.timeZone, timeZone)
+	assert.deepEqual(data.events, [selected])
+})
+
+test("a calendar week includes both months and shows a spanning event once", async (t) => {
+	const december = {
+		end: { date: "2026-12-30" },
+		id: "december-event",
+		start: { date: "2026-12-29" },
+		summary: "December plans",
+	}
+	const spanning = {
+		end: { date: "2027-01-03" },
+		id: "spanning-event",
+		start: { date: "2026-12-31" },
+		summary: "New year break",
+	}
+	const january = {
+		end: { date: "2027-01-03" },
+		id: "january-event",
+		start: { date: "2027-01-02" },
+		summary: "January plans",
+	}
+	const pages = {
+		"2026-12": { events: [december, spanning], timeZone },
+		"2027-01": { events: [spanning, january], timeZone },
+	}
+	globalThis.window = { calendar: { list: async (_account, month) => pages[month] } }
+	t.after(() => {
+		delete globalThis.window
+	})
+
+	const data = await calendarLoader({
+		request: new Request("https://argo.test/calendar?date=2027-01-01&view=week"),
+	})
+
+	assert.equal(data.day, "2027-01-01")
+	assert.equal(data.view, "week")
+	assert.deepEqual(data.events.map((event) => event.id).sort(), [
+		"december-event",
+		"january-event",
+		"spanning-event",
+	])
+})
+
+test("a calendar source link opens its event day using the source month hint", async (t) => {
+	const selected = {
+		end: { dateTime: "2026-11-17T02:30:00+01:00" },
+		id: "source-event",
+		start: { dateTime: "2026-11-17T01:30:00+01:00" },
+		summary: "Proposal review",
+	}
+	const pages = { eightzerothree: { "2026-11": { events: [selected], timeZone } } }
+	globalThis.window = {
+		calendar: { list: async (account, month) => pages[account][month] },
+	}
+	t.after(() => {
+		delete globalThis.window
+	})
+	const href = sourceHref({
+		account: "eightzerothree",
+		eventId: selected.id,
+		label: "Proposal review from the task",
+		month: "2026-11",
+		source: "calendar",
+	})
+
+	const data = await calendarLoader({
+		request: new Request(new URL(href, "https://argo.test")),
+	})
+
+	assert.equal(data.day, "2026-11-16")
+	assert.deepEqual(data.events, [selected])
 })

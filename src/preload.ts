@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld("calendar", {
 } satisfies CalendarApi)
 
 contextBridge.exposeInMainWorld("teams", {
+	chat: (id: string) => ipcRenderer.invoke("teams:chat", id),
 	list: (pageToken?: string) => ipcRenderer.invoke("teams:list", pageToken),
 	messages: (chatId: string, pageToken?: string) =>
 		ipcRenderer.invoke("teams:messages", chatId, pageToken),

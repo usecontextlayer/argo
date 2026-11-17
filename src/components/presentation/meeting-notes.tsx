@@ -1,11 +1,9 @@
-import { useState } from "react"
+import { singleConnectionAccounts } from "@/accounts"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { GranolaMeeting, GranolaTranscript } from "@/granola"
-import { singleConnectionAccounts } from "@/provider-identity"
 import { Document } from "./document"
 import { SourceIdentity, Timestamp } from "./primitives"
 import { RichText } from "./rich-text"
-import "./documents.css"
 
 export type MeetingSection = "summary" | "notes" | "transcript"
 
@@ -14,23 +12,19 @@ export function MeetingNotes({
 	section,
 	transcript,
 	onSectionChange,
-	account = singleConnectionAccounts.granola,
 }: {
 	meeting: GranolaMeeting
-	section?: MeetingSection
+	section: MeetingSection
 	transcript?: GranolaTranscript | null
-	onSectionChange?: (section: MeetingSection) => void
-	account?: string
+	onSectionChange: (section: MeetingSection) => void
 }) {
-	const [localSection, setLocalSection] = useState<MeetingSection>("summary")
-	const selected = section ?? localSection
 	return (
 		<Document
 			title={meeting.title}
 			identity={
 				<SourceIdentity
 					provider="granola"
-					account={account}
+					account={singleConnectionAccounts.granola}
 				/>
 			}
 			meta={
@@ -41,12 +35,8 @@ export function MeetingNotes({
 			}
 		>
 			<Tabs
-				value={selected}
-				onValueChange={(value) => {
-					const next = value as MeetingSection
-					setLocalSection(next)
-					onSectionChange?.(next)
-				}}
+				value={section}
+				onValueChange={(value) => onSectionChange(value as MeetingSection)}
 			>
 				<TabsList
 					variant="line"
@@ -54,7 +44,7 @@ export function MeetingNotes({
 				>
 					<TabsTrigger value="summary">Summary</TabsTrigger>
 					<TabsTrigger value="notes">My notes</TabsTrigger>
-					{meeting.transcriptAvailable && (transcript || onSectionChange) && (
+					{meeting.transcriptAvailable && (
 						<TabsTrigger value="transcript">Transcript</TabsTrigger>
 					)}
 				</TabsList>
@@ -65,11 +55,11 @@ export function MeetingNotes({
 					<RichText text={meeting.notes || "No private notes."} />
 				</TabsContent>
 				<TabsContent value="transcript">
-					<div className="document-plain-text">
+					<div className="whitespace-pre-wrap text-sm leading-relaxed wrap-anywhere">
 						{transcript?.transcript || "No transcript available."}
 					</div>
 					{transcript?.truncated && (
-						<p className="document-source-note">
+						<p className="mt-6 text-sm text-muted-foreground">
 							Granola returned part of this transcript.
 						</p>
 					)}

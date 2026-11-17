@@ -8,6 +8,7 @@ import {
 	useRouteError,
 	useSearchParams,
 } from "react-router"
+import { singleConnectionAccounts } from "@/accounts"
 import { monthLink } from "@/calendar"
 import {
 	MeetingNotes,
@@ -20,7 +21,6 @@ import {
 	type GranolaTranscript,
 	readGranolaMeetings,
 } from "@/granola"
-import { singleConnectionAccounts } from "@/provider-identity"
 
 type GranolaViewData = {
 	month: string
@@ -35,18 +35,20 @@ export async function granolaLoader({
 	request,
 }: LoaderFunctionArgs): Promise<GranolaViewData> {
 	const params = new URL(request.url).searchParams
+	const id = params.get("meeting")
+	const detail = id ? await window.granola.meeting(id) : null
+	const meeting = detail ? readGranolaMeetings(detail)[0] : undefined
 	const now = new Date()
 	const month =
 		params.get("month") ??
+		meeting?.date.slice(0, 7) ??
 		`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
-	const id = params.get("meeting")
-	const [list, detail, transcript] = await Promise.all([
+	const [list, transcript] = await Promise.all([
 		window.granola.list(month),
-		id ? window.granola.meeting(id) : null,
 		id && params.get("view") === "transcript" ? window.granola.transcript(id) : null,
 	])
 	return {
-		meeting: detail ? readGranolaMeetings(detail)[0] : undefined,
+		meeting,
 		meetings: readGranolaMeetings(list),
 		month,
 		transcript,
@@ -60,14 +62,14 @@ export function GranolaView() {
 	const revalidator = useRevalidator()
 	const view = params.get("view") ?? "summary"
 	return (
-		<div className={`granola-workspace ${meeting ? "has-selection" : ""}`}>
+		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside
-				className="conversation-sidebar"
+				className={`flex min-h-0 w-80 shrink-0 flex-col border-r bg-muted/30 @4xl/content:w-96 @max-3xl/content:w-full @max-3xl/content:border-r-0 ${meeting ? "@max-3xl/content:hidden" : ""}`}
 				aria-label="Granola meetings"
 			>
-				<header className="sidebar-heading">
+				<header className="flex items-center justify-between gap-4 p-6">
 					<div>
-						<h1>Meetings</h1>
+						<h1 className="mb-2 text-lg font-semibold">Meetings</h1>
 						<SourceIdentity
 							provider="granola"
 							account={singleConnectionAccounts.granola}
@@ -86,10 +88,11 @@ export function GranolaView() {
 					</Button>
 				</header>
 				<nav
-					className="granola-month"
+					className="flex items-center justify-between px-6 pb-4 text-sm"
 					aria-label="Meeting month"
 				>
 					<Link
+						className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 						to={monthLink(month, -1)}
 						aria-label="Previous month"
 					>
@@ -97,6 +100,7 @@ export function GranolaView() {
 					</Link>
 					<span>{monthDate.format(new Date(`${month}-01T12:00:00`))}</span>
 					<Link
+						className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 						to={monthLink(month, 1)}
 						aria-label="Next month"
 					>
@@ -104,14 +108,15 @@ export function GranolaView() {
 					</Link>
 				</nav>
 				<nav
-					className="conversation-list"
+					className="min-h-0 flex-1 overflow-y-auto px-3 pb-6"
 					aria-label="Meetings"
 					aria-busy={navigation.state !== "idle"}
 				>
 					{meetings.map((item) => (
 						<Link
 							key={item.id}
-							className={`conversation-row ${meeting?.id === item.id ? "is-active" : ""}`}
+							aria-current={meeting?.id === item.id ? "page" : undefined}
+							className={`block rounded-md px-3 py-4 text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${meeting?.id === item.id ? "bg-accent" : ""}`}
 							to={`?${new URLSearchParams({ meeting: item.id, month })}`}
 						>
 							<Preview
@@ -126,18 +131,22 @@ export function GranolaView() {
 							/>
 						</Link>
 					))}
-					{meetings.length === 0 && <p className="empty-list">No meetings this month.</p>}
+					{meetings.length === 0 && (
+						<p className="px-3 py-6 text-sm text-muted-foreground">
+							No meetings this month.
+						</p>
+					)}
 				</nav>
 			</aside>
 			<main
-				className="reading-pane"
+				className={`min-h-0 min-w-0 flex-1 overflow-y-auto p-6 @4xl/content:p-10 ${meeting ? "" : "@max-3xl/content:hidden"}`}
 				aria-label="Meeting notes"
 				aria-busy={navigation.state !== "idle"}
 			>
 				{meeting ? (
-					<div className="meeting-reader">
+					<div className="mx-auto max-w-4xl">
 						<Link
-							className="granola-back"
+							className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
 							to={`?month=${month}`}
 						>
 							Back to meetings
@@ -155,9 +164,11 @@ export function GranolaView() {
 						/>
 					</div>
 				) : (
-					<div className="reader-empty">
-						<h2>Meetings, remembered.</h2>
-						<p>Choose a meeting to read its notes and transcript.</p>
+					<div className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center">
+						<h2 className="text-xl font-semibold">Meetings, remembered.</h2>
+						<p className="max-w-prose text-sm text-muted-foreground">
+							Choose a meeting to read its notes and transcript.
+						</p>
 					</div>
 				)}
 			</main>
@@ -168,11 +179,11 @@ export function GranolaView() {
 export function LoadingGranola() {
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="status"
 		>
-			<h2>Opening Granola…</h2>
-			<p>Getting your meetings.</p>
+			<h2 className="text-xl font-semibold">Opening Granola…</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">Getting your meetings.</p>
 		</main>
 	)
 }
@@ -181,11 +192,13 @@ export function GranolaError() {
 	const error = useRouteError()
 	return (
 		<main
-			className="reader-empty"
+			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
 			role="alert"
 		>
-			<h2>Granola couldn’t load.</h2>
-			<p>{error instanceof Error ? error.message : "The Granola read failed."}</p>
+			<h2 className="text-xl font-semibold">Granola couldn’t load.</h2>
+			<p className="max-w-prose text-sm text-muted-foreground">
+				{error instanceof Error ? error.message : "The Granola read failed."}
+			</p>
 			<Button onClick={() => window.location.reload()}>Try again</Button>
 		</main>
 	)
