@@ -7,8 +7,7 @@ import {
 	type MailThread,
 } from "@/mail"
 
-type Address = MailAddress
-type Recipient = { emailAddress: Address }
+type Recipient = { emailAddress: MailAddress }
 type OutlookMessage = {
 	id: string
 	conversationId: string
@@ -42,7 +41,7 @@ type OutlookEvent = {
 	onlineMeeting?: { joinUrl: string } | null
 }
 
-function readOutlookConversation(messages: OutlookMessage[]): MailThread {
+function decodeOutlookConversation(messages: OutlookMessage[]): MailThread {
 	const ordered = messages
 		.filter((message) => !message.isDraft)
 		.sort((a, b) => Date.parse(a.receivedDateTime) - Date.parse(b.receivedDateTime))
@@ -95,7 +94,7 @@ export async function listOutlookMail(
 	return {
 		nextPageToken: result.next_page_token ?? undefined,
 		threads: [...conversations.values()]
-			.map(readOutlookConversation)
+			.map(decodeOutlookConversation)
 			.sort((a, b) => b.date - a.date),
 	}
 }
@@ -118,10 +117,10 @@ export async function readOutlookThread(
 		messages.push(...page.value)
 		pageToken = page.next_page_token ?? undefined
 	} while (pageToken)
-	return readOutlookConversation(messages)
+	return decodeOutlookConversation(messages)
 }
 
-function readOutlookEvent(
+function decodeOutlookEvent(
 	event: OutlookEvent,
 	calendar: { id: string; name: string },
 	accountEmail: string,
@@ -225,7 +224,7 @@ export async function listOutlookCalendar(
 				events.push(
 					...page.value
 						.filter((event) => !event.isCancelled)
-						.map((event) => readOutlookEvent(event, calendar, accountEmail)),
+						.map((event) => decodeOutlookEvent(event, calendar, accountEmail)),
 				)
 				eventPageToken = page.next_page_token ?? undefined
 			} while (eventPageToken)

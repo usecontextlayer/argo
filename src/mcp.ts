@@ -5,6 +5,7 @@ import {
 	StdioClientTransport,
 } from "@modelcontextprotocol/client/stdio"
 import { z } from "zod"
+import { memoize } from "./cache.ts"
 
 const serverSchema = z.union([
 	z.object({
@@ -32,15 +33,8 @@ export class McpConnections {
 		this.configPath = configPath
 	}
 
-	async client(name: string): Promise<Client> {
-		const existing = this.clients.get(name)
-		if (existing) return existing
-		const connecting = this.connect(name).catch((error) => {
-			this.clients.delete(name)
-			throw error
-		})
-		this.clients.set(name, connecting)
-		return connecting
+	client(name: string): Promise<Client> {
+		return memoize(this.clients, name, () => this.connect(name))
 	}
 
 	private async connect(name: string): Promise<Client> {

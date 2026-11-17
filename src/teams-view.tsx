@@ -5,12 +5,12 @@ import {
 	useLoaderData,
 	useNavigation,
 	useRevalidator,
-	useRouteError,
 	useSearchParams,
 } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { TeamsDocument } from "@/components/presentation/chat"
 import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
+import { SourceError } from "@/components/source-error"
 import { Button } from "@/components/ui/button"
 import type { TeamsChat, TeamsChatPage, TeamsMessagePage } from "@/teams"
 
@@ -43,7 +43,7 @@ export function TeamsView() {
 	const moreChats = new URLSearchParams(params)
 	if (chats.nextPageToken) moreChats.set("chatsPage", chats.nextPageToken)
 	function query(values: Record<string, string | undefined>) {
-		const next = new URLSearchParams({ account: singleConnectionAccounts.teams })
+		const next = new URLSearchParams({ account: sourceAccounts.teams.id })
 		for (const [key, value] of Object.entries(values)) if (value) next.set(key, value)
 		return `?${next}`
 	}
@@ -58,7 +58,7 @@ export function TeamsView() {
 						<h1 className="mb-2 text-lg font-semibold">Chats</h1>
 						<SourceIdentity
 							provider="teams"
-							account={singleConnectionAccounts.teams}
+							account={sourceAccounts.teams}
 						/>
 					</div>
 					<Button
@@ -99,7 +99,7 @@ export function TeamsView() {
 								identity={
 									<SourceIdentity
 										provider="teams"
-										account={singleConnectionAccounts.teams}
+										account={sourceAccounts.teams}
 									/>
 								}
 							>
@@ -195,17 +195,10 @@ export function LoadingTeams() {
 }
 
 export function TeamsError() {
-	const error = useRouteError()
 	return (
-		<main
-			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">Teams couldn’t load.</h2>
-			<p className="max-w-prose text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The Teams request failed."}
-			</p>
-			<Button onClick={() => window.location.reload()}>Try again</Button>
-		</main>
+		<SourceError
+			title="Teams couldn’t load."
+			fallback="The Teams request failed."
+		/>
 	)
 }

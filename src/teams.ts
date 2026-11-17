@@ -70,7 +70,7 @@ const quoteSchema = z.object({
 		.optional(),
 })
 
-export function readTeamsMessages(
+export function decodeTeamsMessages(
 	messages: TeamsSourceMessage[],
 	currentUserId?: string,
 ): TeamsMessage[] {

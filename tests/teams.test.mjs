@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
-import { readTeamsMessages } from "../src/teams.ts"
+import { decodeTeamsMessages } from "../src/teams.ts"
 
 // Provider structure recorded on 2026-11-16. record-teams.mjs replaces private
 // content with test-owned values while preserving observed nullable fields.
@@ -11,7 +11,7 @@ const source = JSON.parse(
 
 test("Teams messages are presented chronologically despite provider ordering", () => {
 	assert.deepEqual(
-		readTeamsMessages(source).map(({ id, createdAt }) => ({ createdAt, id })),
+		decodeTeamsMessages(source).map(({ id, createdAt }) => ({ createdAt, id })),
 		[
 			{ createdAt: 1700000000000, id: "earlier-message" },
 			{ createdAt: 1700000060000, id: "later-message" },
@@ -20,7 +20,7 @@ test("Teams messages are presented chronologically despite provider ordering", (
 })
 
 test("Teams messages retain sender, HTML content and attachment metadata", () => {
-	const messages = readTeamsMessages(source)
+	const messages = decodeTeamsMessages(source)
 	assert.deepEqual(
 		messages.find((message) => message.id === "later-message"),
 		{

@@ -1,8 +1,8 @@
 import { Document, DocumentSection } from "@/components/presentation/document"
 import { Disclosure } from "@/components/presentation/primitives"
 import type { Doable } from "@/doables"
-import { sourceHref } from "@/doables"
 import { SourceItem } from "@/source-item"
+import { sourceHref } from "@/source-reference"
 
 export function DoableDocument({ doable }: { doable: Doable }) {
 	return (

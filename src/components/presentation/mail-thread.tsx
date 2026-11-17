@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react"
+import { getAccount } from "@/accounts"
 import { DraftComposer } from "@/components/draft-composer"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,16 +13,14 @@ import { accountProvider } from "@/provider-identity"
 import { useDraft } from "@/use-draft"
 import { Document } from "./document"
 import { SourceIdentity, Timestamp } from "./primitives"
-import { SafeHtml } from "./rich-text"
+import { EmailHtml } from "./rich-text"
 
 export function MailThread({
 	thread,
 	account,
-	sendOnEnter = false,
 }: {
 	thread: MailThreadData
 	account: string
-	sendOnEnter?: boolean
 }) {
 	const binding = useDraft<MailDraft>(["mail", account, thread.id], {
 		discard: (draft) => window.mail.discardDraft(account, draft.id),
@@ -42,7 +41,7 @@ export function MailThread({
 			identity={
 				<SourceIdentity
 					provider={accountProvider(account, "mail")}
-					account={account}
+					account={getAccount(account)}
 				/>
 			}
 			meta={
@@ -86,7 +85,7 @@ export function MailThread({
 								To {formatMailAddresses(message.to)}
 							</p>
 							{message.html ? (
-								<SafeHtml
+								<EmailHtml
 									html={message.html}
 									title={`Message from ${formatMailAddress(message.from)}`}
 								/>
@@ -126,7 +125,7 @@ export function MailThread({
 				)}
 				<DraftComposer
 					binding={binding}
-					sendOnEnter={sendOnEnter}
+					sendOnEnter={false}
 				>
 					{binding.draft && (
 						<div className="space-y-1 text-sm text-muted-foreground">

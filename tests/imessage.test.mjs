@@ -2,9 +2,9 @@ import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
 import {
+	decodeIMessageChats,
+	decodeIMessageMessages,
 	parseIMessageJson,
-	readIMessageChats,
-	readIMessageMessages,
 } from "../src/imessage.ts"
 
 // imsg 0.21.1 output recorded on 2026-11-16. record-imessage.mjs preserves
@@ -13,7 +13,7 @@ const fixture = (name) =>
 	readFile(new URL(`fixtures/imessage-${name}.ndjson`, import.meta.url), "utf8")
 
 test("iMessage chat NDJSON preserves conversation identity, titles, services and unread state", async () => {
-	const chats = readIMessageChats(parseIMessageJson(await fixture("chats")))
+	const chats = decodeIMessageChats(parseIMessageJson(await fixture("chats")))
 	assert.equal(chats.length, 50)
 	assert.deepEqual(chats[2], {
 		id: 3,
@@ -38,7 +38,7 @@ test("iMessage chat NDJSON preserves conversation identity, titles, services and
 })
 
 test("iMessage history reads chronologically from newest-first CLI NDJSON", async () => {
-	const messages = readIMessageMessages(parseIMessageJson(await fixture("history")))
+	const messages = decodeIMessageMessages(parseIMessageJson(await fixture("history")))
 	assert.equal(messages.length, 100)
 	assert.equal(messages[0].id, "identity-223")
 	assert.equal(messages[0].createdAt, 1700000000000)
@@ -53,7 +53,7 @@ test("iMessage history reads chronologically from newest-first CLI NDJSON", asyn
 })
 
 test("iMessage messages preserve direction, sender, UTF-8 text and attachment metadata", async () => {
-	const messages = readIMessageMessages(parseIMessageJson(await fixture("history")))
+	const messages = decodeIMessageMessages(parseIMessageJson(await fixture("history")))
 	assert.deepEqual(
 		messages.find(({ id }) => id === "identity-209"),
 		{
@@ -78,8 +78,10 @@ test("iMessage messages preserve direction, sender, UTF-8 text and attachment me
 })
 
 test("iMessage uses resolved contact names for conversations and incoming senders", async () => {
-	const chats = readIMessageChats(parseIMessageJson(await fixture("chats-named")))
-	const messages = readIMessageMessages(parseIMessageJson(await fixture("history-named")))
+	const chats = decodeIMessageChats(parseIMessageJson(await fixture("chats-named")))
+	const messages = decodeIMessageMessages(
+		parseIMessageJson(await fixture("history-named")),
+	)
 	assert.equal(chats.find(({ id }) => id === 2).title, "identity-224")
 	assert.equal(chats.find(({ id }) => id === 2).identifier, "identity-6")
 	assert.deepEqual(

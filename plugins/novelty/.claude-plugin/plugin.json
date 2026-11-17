@@ -1,0 +1,6 @@
+{
+	"channels": [{ "displayName": "Novelty", "server": "novelty" }],
+	"description": "Periodic discovery in Argo's primary Claude session.",
+	"name": "novelty",
+	"version": "1.0.0"
+}

@@ -3,8 +3,9 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import test from "node:test"
-import { doableSchema, sourceHref } from "../src/doables.ts"
+import { doableSchema } from "../src/doables.ts"
 import { listDoables } from "../src/doables-service.ts"
+import { sourceHref } from "../src/source-reference.ts"
 
 const sourceCases = [
 	{

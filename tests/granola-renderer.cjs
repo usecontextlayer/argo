@@ -19,7 +19,7 @@ app
 			readFileSync(join(__dirname, `fixtures/granola-${name}.xml`), "utf8"),
 		)
 		const result = await window.webContents.executeJavaScript(
-			`import(${JSON.stringify(moduleUrl)}).then(({ readGranolaMeetings }) => ${JSON.stringify(fixtures)}.map(readGranolaMeetings))`,
+			`import(${JSON.stringify(moduleUrl)}).then(({ decodeGranolaMeetings }) => ${JSON.stringify(fixtures)}.map(decodeGranolaMeetings))`,
 		)
 		process.stdout.write(JSON.stringify(result))
 		app.exit(0)

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Link, NavLink, useRouteLoaderData, useSearchParams } from "react-router"
-import { accounts, getAccount, singleConnectionAccounts } from "@/accounts"
+import { type AccountMetadata, accounts, sourceAccounts } from "@/accounts"
 import type { calendarLoader } from "@/calendar-view"
 import { AccountIdentity, ProviderIcon } from "@/components/presentation/primitives"
 import { type Provider, providers } from "@/provider-identity"
@@ -12,52 +12,58 @@ const groups: {
 	provider: Provider
 	label?: string
 	pathname: string
-	accounts: readonly (string | (typeof accounts)[number])[]
+	accounts: readonly AccountMetadata[]
+	selectAccount?: true
 }[] = [
 	{
 		accounts: googleAccounts,
 		pathname: "/mail",
 		provider: "gmail",
+		selectAccount: true,
 	},
 	{
 		accounts: googleAccounts,
 		pathname: "/calendar",
 		provider: "google-calendar",
+		selectAccount: true,
 	},
 	{
 		accounts: microsoftAccounts,
 		label: "Outlook Mail",
 		pathname: "/mail",
 		provider: "outlook",
+		selectAccount: true,
 	},
 	{
 		accounts: microsoftAccounts,
 		label: "Outlook Calendar",
 		pathname: "/calendar",
 		provider: "outlook",
+		selectAccount: true,
 	},
 	{
-		accounts: [getAccount(singleConnectionAccounts.teams)],
+		accounts: [sourceAccounts.teams],
 		pathname: "/teams",
 		provider: "teams",
+		selectAccount: true,
 	},
 	{
-		accounts: [singleConnectionAccounts.granola],
+		accounts: [sourceAccounts.granola],
 		pathname: "/granola",
 		provider: "granola",
 	},
 	{
-		accounts: [singleConnectionAccounts.whatsapp],
+		accounts: [sourceAccounts.whatsapp],
 		pathname: "/whatsapp",
 		provider: "whatsapp",
 	},
 	{
-		accounts: [singleConnectionAccounts.imessage],
+		accounts: [sourceAccounts.imessage],
 		pathname: "/imessage",
 		provider: "imessage",
 	},
 	{
-		accounts: [singleConnectionAccounts.workflowy],
+		accounts: [sourceAccounts.workflowy],
 		pathname: "/workflowy",
 		provider: "workflowy",
 	},
@@ -110,9 +116,16 @@ export function AppNavigation() {
 			>
 				<div className="border-b pb-4">
 					<NavigationLink pathname="/doables">Doables</NavigationLink>
+					<NavigationLink pathname="/claude">Claude</NavigationLink>
 				</div>
 				{groups.map(
-					({ provider, label = providers[provider].name, pathname, accounts }) => (
+					({
+						provider,
+						label = providers[provider].name,
+						pathname,
+						accounts,
+						selectAccount,
+					}) => (
 						<section
 							aria-label={label}
 							key={label}
@@ -126,18 +139,15 @@ export function AppNavigation() {
 								</span>
 								{label}
 							</h2>
-							{accounts.map((account) => {
-								const identity = typeof account === "string" ? account : account.id
-								return (
-									<NavigationLink
-										key={identity}
-										pathname={pathname}
-										account={typeof account === "string" ? undefined : account.id}
-									>
-										<AccountIdentity account={identity} />
-									</NavigationLink>
-								)
-							})}
+							{accounts.map((account) => (
+								<NavigationLink
+									key={account.id}
+									pathname={pathname}
+									account={selectAccount ? account.id : undefined}
+								>
+									<AccountIdentity identity={account} />
+								</NavigationLink>
+							))}
 						</section>
 					),
 				)}

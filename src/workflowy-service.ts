@@ -1,7 +1,7 @@
 import { z } from "zod"
-import { memoize } from "@/composio"
+import { memoize } from "@/cache"
 import type { McpConnections } from "@/mcp"
-import { readWorkflowyNodes, type WorkflowyPage } from "@/workflowy"
+import { decodeWorkflowyNodes, type WorkflowyPage } from "@/workflowy"
 
 const pages = new Map<string, Promise<WorkflowyPage>>()
 const resultSchema = z.object({ results: z.array(z.string()) })
@@ -28,7 +28,7 @@ export function createWorkflowyService(connections: McpConnections) {
 				})
 				if (result.isError) throw new Error(JSON.stringify(result.content))
 				const structured = resultSchema.parse(result.structuredContent)
-				return { nodes: structured.results.flatMap(readWorkflowyNodes) }
+				return { nodes: structured.results.flatMap(decodeWorkflowyNodes) }
 			})
 		},
 		refresh() {

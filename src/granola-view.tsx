@@ -5,21 +5,21 @@ import {
 	useLoaderData,
 	useNavigation,
 	useRevalidator,
-	useRouteError,
 	useSearchParams,
 } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { monthLink } from "@/calendar"
 import {
 	MeetingNotes,
 	type MeetingSection,
 } from "@/components/presentation/meeting-notes"
 import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
+import { SourceError } from "@/components/source-error"
 import { Button } from "@/components/ui/button"
 import {
+	decodeGranolaMeetings,
 	type GranolaMeeting,
 	type GranolaTranscript,
-	readGranolaMeetings,
 } from "@/granola"
 
 type GranolaViewData = {
@@ -37,7 +37,7 @@ export async function granolaLoader({
 	const params = new URL(request.url).searchParams
 	const id = params.get("meeting")
 	const detail = id ? await window.granola.meeting(id) : null
-	const meeting = detail ? readGranolaMeetings(detail)[0] : undefined
+	const meeting = detail ? decodeGranolaMeetings(detail)[0] : undefined
 	const now = new Date()
 	const month =
 		params.get("month") ??
@@ -49,7 +49,7 @@ export async function granolaLoader({
 	])
 	return {
 		meeting,
-		meetings: readGranolaMeetings(list),
+		meetings: decodeGranolaMeetings(list),
 		month,
 		transcript,
 	}
@@ -72,7 +72,7 @@ export function GranolaView() {
 						<h1 className="mb-2 text-lg font-semibold">Meetings</h1>
 						<SourceIdentity
 							provider="granola"
-							account={singleConnectionAccounts.granola}
+							account={sourceAccounts.granola}
 						/>
 					</div>
 					<Button
@@ -124,7 +124,7 @@ export function GranolaView() {
 								identity={
 									<SourceIdentity
 										provider="granola"
-										account={singleConnectionAccounts.granola}
+										account={sourceAccounts.granola}
 									/>
 								}
 								meta={<Timestamp value={item.date} />}
@@ -189,17 +189,10 @@ export function LoadingGranola() {
 }
 
 export function GranolaError() {
-	const error = useRouteError()
 	return (
-		<main
-			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">Granola couldn’t load.</h2>
-			<p className="max-w-prose text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The Granola read failed."}
-			</p>
-			<Button onClick={() => window.location.reload()}>Try again</Button>
-		</main>
+		<SourceError
+			title="Granola couldn’t load."
+			fallback="The Granola read failed."
+		/>
 	)
 }

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { after, before, test } from "node:test"
 import { createServer } from "vite"
-import { readTeamsMessages } from "../src/teams.ts"
+import { decodeTeamsMessages } from "../src/teams.ts"
 
 let server
 let directory
@@ -219,7 +219,7 @@ test("Teams history exposes a native quoted reply separately from file attachmen
 	// Minimal synthetic example of Microsoft's documented replyWithQuote response;
 	// this is not a recorded provider fixture.
 	// https://learn.microsoft.com/en-us/graph/api/chatmessage-replywithquote?view=graph-rest-1.0
-	const [message] = readTeamsMessages(
+	const [message] = decodeTeamsMessages(
 		[
 			{
 				attachments: [
@@ -271,7 +271,7 @@ test("Teams history exposes a native quoted reply separately from file attachmen
 })
 
 test("Teams history reads quoted application messages whose user identity is null", () => {
-	const [message] = readTeamsMessages([
+	const [message] = decodeTeamsMessages([
 		{
 			attachments: [
 				{

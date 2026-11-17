@@ -1,7 +1,7 @@
 import { Paperclip, Reply } from "lucide-react"
 import { type ReactNode, useEffect, useRef } from "react"
 import { Link } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import {
 	IMessageReply,
 	TeamsReply,
@@ -17,7 +17,7 @@ import type { TeamsChat, TeamsMessage } from "@/teams"
 import type { WhatsAppChat, WhatsAppMessage } from "@/whatsapp"
 import { Document } from "./document"
 import { Person, SourceIdentity, Timestamp } from "./primitives"
-import { HtmlContent } from "./rich-text"
+import { SanitizedHtml } from "./rich-text"
 
 export type ChatMessage = {
 	id: string
@@ -109,7 +109,7 @@ export function Chat({
 										</blockquote>
 									))}
 								{message.html ? (
-									<HtmlContent html={message.html} />
+									<SanitizedHtml html={message.html} />
 								) : (
 									<div className="whitespace-pre-wrap text-sm leading-relaxed wrap-anywhere">
 										{message.text}
@@ -243,7 +243,6 @@ export function IMessageDocument({
 	children,
 	quoteHref,
 	highlightedId,
-	sendOnEnter = true,
 }: {
 	chat: IMessageChat
 	messages: IMessageMessage[]
@@ -251,7 +250,6 @@ export function IMessageDocument({
 	children?: ReactNode
 	quoteHref?: (id: string) => string
 	highlightedId?: string
-	sendOnEnter?: boolean
 }) {
 	return (
 		<Document
@@ -260,7 +258,7 @@ export function IMessageDocument({
 			identity={
 				<SourceIdentity
 					provider="imessage"
-					account={singleConnectionAccounts.imessage}
+					account={sourceAccounts.imessage}
 				/>
 			}
 			actions={actions}
@@ -271,10 +269,7 @@ export function IMessageDocument({
 				quoteHref={quoteHref}
 				highlightedId={highlightedId}
 			/>
-			<IMessageReply
-				chatId={chat.id}
-				sendOnEnter={sendOnEnter}
-			/>
+			<IMessageReply chatId={chat.id} />
 		</Document>
 	)
 }
@@ -284,13 +279,11 @@ export function TeamsDocument({
 	messages,
 	actions,
 	children,
-	sendOnEnter = true,
 }: {
 	chat: TeamsChat
 	messages: TeamsMessage[]
 	actions?: ReactNode
 	children?: ReactNode
-	sendOnEnter?: boolean
 }) {
 	const { binding, reply } = useTeamsReply(chat.id)
 	return (
@@ -299,7 +292,7 @@ export function TeamsDocument({
 			identity={
 				<SourceIdentity
 					provider="teams"
-					account={singleConnectionAccounts.teams}
+					account={sourceAccounts.teams}
 				/>
 			}
 			actions={actions}
@@ -316,10 +309,7 @@ export function TeamsDocument({
 						: undefined
 				}
 			/>
-			<TeamsReply
-				binding={binding}
-				sendOnEnter={sendOnEnter}
-			/>
+			<TeamsReply binding={binding} />
 		</Document>
 	)
 }
@@ -330,7 +320,6 @@ export function WhatsAppDocument({
 	children,
 	quoteHref,
 	highlightedId,
-	sendOnEnter = true,
 }: {
 	chat: WhatsAppChat
 	messages: WhatsAppMessage[]
@@ -338,7 +327,6 @@ export function WhatsAppDocument({
 	children?: ReactNode
 	quoteHref?: (id: string) => string
 	highlightedId?: string
-	sendOnEnter?: boolean
 }) {
 	const { binding, reply } = useWhatsAppReply(chat.id)
 	return (
@@ -347,7 +335,7 @@ export function WhatsAppDocument({
 			identity={
 				<SourceIdentity
 					provider="whatsapp"
-					account={singleConnectionAccounts.whatsapp}
+					account={sourceAccounts.whatsapp}
 				/>
 			}
 			actions={actions}
@@ -366,10 +354,7 @@ export function WhatsAppDocument({
 				quoteHref={quoteHref}
 				highlightedId={highlightedId}
 			/>
-			<WhatsAppReply
-				binding={binding}
-				sendOnEnter={sendOnEnter}
-			/>
+			<WhatsAppReply binding={binding} />
 		</Document>
 	)
 }

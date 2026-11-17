@@ -1,8 +1,9 @@
+import { memoize } from "@/cache"
 import type { ChatDraftStore } from "@/chat-drafts"
-import { execute, memoize, proxy } from "@/composio"
+import { execute, proxy } from "@/composio"
 import { documentToHtml, documentToText } from "@/editor"
 import {
-	readTeamsMessages as decodeMessages,
+	decodeTeamsMessages,
 	type TeamsApi,
 	type TeamsChat,
 	type TeamsChatPage,
@@ -86,7 +87,7 @@ async function fetchMessages(
 		},
 	)
 	return {
-		messages: decodeMessages(page.value, userId),
+		messages: decodeTeamsMessages(page.value, userId),
 		nextPageToken: page.next_page_token ?? undefined,
 	}
 }

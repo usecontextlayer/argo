@@ -1,7 +1,7 @@
 import { ArrowUpRight } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link, useFetcher } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { getAccount, sourceAccounts } from "@/accounts"
 import {
 	IMessageDocument,
 	TeamsDocument,
@@ -15,19 +15,19 @@ import {
 } from "@/components/presentation/meeting-notes"
 import { WorkflowyDocument } from "@/components/presentation/outline"
 import { Disclosure, SourceIdentity } from "@/components/presentation/primitives"
-import { type SourceReference, sourceHref } from "@/doables"
 import { sourceProvider } from "@/provider-identity"
 import {
 	type SourceContent,
 	type SourceItemResult,
 	sourceItemHref,
 } from "@/source-item-loader"
+import { type SourceReference, sourceHref } from "@/source-reference"
 
-export function SourceReferenceIdentity({ reference }: { reference: SourceReference }) {
+function SourceReferenceIdentity({ reference }: { reference: SourceReference }) {
 	const account =
 		"account" in reference
-			? reference.account
-			: singleConnectionAccounts[reference.source]
+			? getAccount(reference.account)
+			: sourceAccounts[reference.source]
 	return (
 		<SourceIdentity
 			provider={sourceProvider(reference)}

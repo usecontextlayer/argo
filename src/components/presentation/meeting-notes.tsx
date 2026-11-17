@@ -1,9 +1,9 @@
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { GranolaMeeting, GranolaTranscript } from "@/granola"
 import { Document } from "./document"
 import { SourceIdentity, Timestamp } from "./primitives"
-import { RichText } from "./rich-text"
+import { MarkdownContent } from "./rich-text"
 
 export type MeetingSection = "summary" | "notes" | "transcript"
 
@@ -24,7 +24,7 @@ export function MeetingNotes({
 			identity={
 				<SourceIdentity
 					provider="granola"
-					account={singleConnectionAccounts.granola}
+					account={sourceAccounts.granola}
 				/>
 			}
 			meta={
@@ -49,10 +49,10 @@ export function MeetingNotes({
 					)}
 				</TabsList>
 				<TabsContent value="summary">
-					<RichText text={meeting.summary || "No summary available."} />
+					<MarkdownContent text={meeting.summary || "No summary available."} />
 				</TabsContent>
 				<TabsContent value="notes">
-					<RichText text={meeting.notes || "No private notes."} />
+					<MarkdownContent text={meeting.notes || "No private notes."} />
 				</TabsContent>
 				<TabsContent value="transcript">
 					<div className="whitespace-pre-wrap text-sm leading-relaxed wrap-anywhere">

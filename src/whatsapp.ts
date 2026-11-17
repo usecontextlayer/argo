@@ -105,16 +105,16 @@ const messageSchema = z
 		}),
 	)
 
-export function readWhatsAppChat(source: unknown): WhatsAppChat {
+export function decodeWhatsAppChat(source: unknown): WhatsAppChat {
 	return chatSchema.parse(source)
 }
 
-export function readWhatsAppChats(source: unknown): WhatsAppPage<WhatsAppChat> {
+export function decodeWhatsAppChats(source: unknown): WhatsAppPage<WhatsAppChat> {
 	const { result } = z.object({ result: z.array(chatSchema) }).parse(source)
 	return { hasMore: result.length === whatsappPageSize, items: result }
 }
 
-export function readWhatsAppMessages(source: unknown): WhatsAppPage<WhatsAppMessage> {
+export function decodeWhatsAppMessages(source: unknown): WhatsAppPage<WhatsAppMessage> {
 	const { result } = z.object({ result: z.array(messageSchema) }).parse(source)
 	return {
 		hasMore: result.length === whatsappPageSize,
@@ -122,7 +122,7 @@ export function readWhatsAppMessages(source: unknown): WhatsAppPage<WhatsAppMess
 	}
 }
 
-export function readWhatsAppContext(source: unknown): WhatsAppContext {
+export function decodeWhatsAppContext(source: unknown): WhatsAppContext {
 	return z
 		.object({
 			after: z.array(messageSchema),

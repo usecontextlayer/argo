@@ -5,12 +5,12 @@ import {
 	useLoaderData,
 	useNavigation,
 	useRevalidator,
-	useRouteError,
 	useSearchParams,
 } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { WhatsAppConversation, WhatsAppDocument } from "@/components/presentation/chat"
 import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
+import { SourceError } from "@/components/source-error"
 import { Button } from "@/components/ui/button"
 import type {
 	WhatsAppChat,
@@ -72,7 +72,7 @@ export function WhatsAppView() {
 						<h1 className="mb-2 text-lg font-semibold">Chats</h1>
 						<SourceIdentity
 							provider="whatsapp"
-							account={singleConnectionAccounts.whatsapp}
+							account={sourceAccounts.whatsapp}
 						/>
 					</div>
 					<Button
@@ -120,7 +120,7 @@ export function WhatsAppView() {
 								identity={
 									<SourceIdentity
 										provider="whatsapp"
-										account={singleConnectionAccounts.whatsapp}
+										account={sourceAccounts.whatsapp}
 									/>
 								}
 							>
@@ -268,17 +268,10 @@ export function LoadingWhatsApp() {
 }
 
 export function WhatsAppError() {
-	const error = useRouteError()
 	return (
-		<main
-			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">WhatsApp couldn’t load.</h2>
-			<p className="max-w-prose text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The WhatsApp read failed."}
-			</p>
-			<Button onClick={() => window.location.reload()}>Try again</Button>
-		</main>
+		<SourceError
+			title="WhatsApp couldn’t load."
+			fallback="The WhatsApp read failed."
+		/>
 	)
 }

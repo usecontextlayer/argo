@@ -6,9 +6,9 @@ import {
 	useNavigate,
 	useNavigation,
 	useRevalidator,
-	useRouteError,
 } from "react-router"
 import { WorkflowyDocument } from "@/components/presentation/outline"
+import { SourceError } from "@/components/source-error"
 import { Button } from "@/components/ui/button"
 import type { WorkflowyPage } from "@/workflowy"
 
@@ -102,17 +102,10 @@ export function LoadingWorkflowy() {
 }
 
 export function WorkflowyError() {
-	const error = useRouteError()
 	return (
-		<main
-			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">Workflowy couldn’t load.</h2>
-			<p className="max-w-prose text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The Workflowy read failed."}
-			</p>
-			<Button onClick={() => window.location.reload()}>Try again</Button>
-		</main>
+		<SourceError
+			title="Workflowy couldn’t load."
+			fallback="The Workflowy read failed."
+		/>
 	)
 }

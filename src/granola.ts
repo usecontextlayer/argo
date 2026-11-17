@@ -26,7 +26,7 @@ declare global {
 	}
 }
 
-export function readGranolaMeetings(source: string): GranolaMeeting[] {
+export function decodeGranolaMeetings(source: string): GranolaMeeting[] {
 	const document = new DOMParser().parseFromString(`<root>${source}</root>`, "text/xml")
 	const error = document.querySelector("parsererror")
 	if (error)

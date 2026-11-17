@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { after, before, test } from "node:test"
 import { createServer } from "vite"
 import { eventDate, eventTime, monthLink } from "../src/calendar.ts"
-import { sourceHref } from "../src/doables.ts"
+import { sourceHref } from "../src/source-reference.ts"
 
 const timeZone = "America/Toronto"
 let server

@@ -1,13 +1,13 @@
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { type ReactNode, useState } from "react"
 import { Link } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { WorkflowyNode } from "@/workflowy"
 import { Document } from "./document"
 import { SourceIdentity } from "./primitives"
-import { HtmlContent } from "./rich-text"
+import { SanitizedHtml } from "./rich-text"
 
 type TreeNode = { node: WorkflowyNode; children: TreeNode[] }
 
@@ -77,7 +77,7 @@ function OutlineBranch({
 						target === node.id && "font-semibold",
 					)}
 				>
-					<HtmlContent html={node.text || "Untitled entry"} />
+					<SanitizedHtml html={node.text || "Untitled entry"} />
 				</div>
 				{!expandable && node.children > 0 && nodeHref && (
 					<Link
@@ -155,7 +155,7 @@ export function WorkflowyDocument({
 			identity={
 				<SourceIdentity
 					provider="workflowy"
-					account={singleConnectionAccounts.workflowy}
+					account={sourceAccounts.workflowy}
 				/>
 			}
 			actions={actions}

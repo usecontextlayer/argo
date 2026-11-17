@@ -1,12 +1,13 @@
 import { CalendarDays, MapPin, Video } from "lucide-react"
 import { useState } from "react"
 import { useRevalidator } from "react-router"
+import { getAccount } from "@/accounts"
 import { type CalendarEvent, type CalendarResponse, eventDate } from "@/calendar"
 import { Button } from "@/components/ui/button"
 import { accountProvider } from "@/provider-identity"
 import { Document, DocumentSection } from "./document"
 import { Person, SourceIdentity } from "./primitives"
-import { HtmlContent } from "./rich-text"
+import { SanitizedHtml } from "./rich-text"
 
 export function EventDetails({
 	event,
@@ -23,7 +24,7 @@ export function EventDetails({
 			identity={
 				<SourceIdentity
 					provider={accountProvider(account, "calendar")}
-					account={account}
+					account={getAccount(account)}
 				/>
 			}
 		>
@@ -100,7 +101,7 @@ export function EventDetails({
 			)}
 			{event.description && (
 				<DocumentSection title="Details">
-					<HtmlContent html={event.description} />
+					<SanitizedHtml html={event.description} />
 				</DocumentSection>
 			)}
 		</Document>

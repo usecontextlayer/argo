@@ -1,4 +1,5 @@
-import { execute, memoize } from "@/composio"
+import { memoize } from "@/cache"
+import { execute } from "@/composio"
 import type { GranolaTranscript } from "@/granola"
 
 const account = "granola_mcp_alit-refly"

@@ -10,3 +10,8 @@ out/
 mcp.json
 
 data/doables/*.json
+
+data/novelty/
+
+# Private Claude profile
+/data/claude/

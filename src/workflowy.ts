@@ -19,7 +19,7 @@ declare global {
 	}
 }
 
-export function readWorkflowyNodes(result: string): WorkflowyNode[] {
+export function decodeWorkflowyNodes(result: string): WorkflowyNode[] {
 	const lines = result.split("\n")
 	const nodes: WorkflowyNode[] = []
 	for (let index = 0; index < lines.length; index++) {

@@ -1,6 +1,7 @@
 import { getAccount } from "@/accounts"
-import { execute as executeTool, memoize } from "@/composio"
-import { type GmailPart, type GmailThread, readGmailThread } from "@/gmail"
+import { memoize } from "@/cache"
+import { execute } from "@/composio"
+import { decodeGmailThread, type GmailPart, type GmailThread } from "@/gmail"
 import {
 	createGmailDraft,
 	discardGmailDraft,
@@ -24,7 +25,7 @@ const threads = new Map<string, Promise<MailThread>>()
 async function fetchMailPage(accountId: string, pageToken?: string): Promise<MailPage> {
 	const account = getAccount(accountId)
 	if (account.provider === "microsoft") return listOutlookMail(account.mail, pageToken)
-	const result = await executeTool<{ threads: GmailThread[]; nextPageToken?: string }>(
+	const result = await execute<{ threads: GmailThread[]; nextPageToken?: string }>(
 		account.mail,
 		"GMAIL_LIST_THREADS",
 		{ max_results: 20, verbose: true, ...(pageToken ? { page_token: pageToken } : {}) },
@@ -35,7 +36,7 @@ async function fetchMailPage(accountId: string, pageToken?: string): Promise<Mai
 			.filter((thread) =>
 				thread.messages.some((message) => !message.labelIds.includes("DRAFT")),
 			)
-			.map(readGmailThread),
+			.map(decodeGmailThread),
 	}
 	for (const thread of page.threads)
 		threads.set(JSON.stringify([accountId, thread.id]), Promise.resolve(thread))
@@ -45,7 +46,7 @@ async function fetchMailPage(accountId: string, pageToken?: string): Promise<Mai
 async function fetchMailThread(accountId: string, id: string): Promise<MailThread> {
 	const account = getAccount(accountId)
 	if (account.provider === "microsoft") return readOutlookThread(account.mail, id)
-	const thread = await executeTool<{
+	const thread = await execute<{
 		threadId: string
 		messages: {
 			messageId: string
@@ -55,7 +56,7 @@ async function fetchMailThread(accountId: string, id: string): Promise<MailThrea
 			payload: GmailPart
 		}[]
 	}>(account.mail, "GMAIL_FETCH_MESSAGE_BY_THREAD_ID", { thread_id: id })
-	return readGmailThread({
+	return decodeGmailThread({
 		id: thread.threadId,
 		messages: thread.messages.map((message) => ({
 			id: message.messageId,

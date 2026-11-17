@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
-import { readWhatsAppChats, readWhatsAppMessages } from "../src/whatsapp.ts"
+import { decodeWhatsAppChats, decodeWhatsAppMessages } from "../src/whatsapp.ts"
 
 // Recorded VGP MCP structuredContent; record-whatsapp.mjs replaces all private
 // values while preserving identity relationships, provider types and nulls.
@@ -15,7 +15,7 @@ const older = await fixture("older")
 const short = await fixture("short")
 
 test("WhatsApp chat pages preserve group and direct-chat identity, unread state and previews", () => {
-	const page = readWhatsAppChats(chats)
+	const page = decodeWhatsAppChats(chats)
 	assert.equal(page.items.length, 50)
 	assert.equal(page.hasMore, true)
 	assert.deepEqual(page.items.slice(0, 2), [
@@ -39,9 +39,9 @@ test("WhatsApp chat pages preserve group and direct-chat identity, unread state 
 })
 
 test("WhatsApp message pages read chronologically and older history precedes recent history", () => {
-	const page = readWhatsAppMessages(recent)
-	const history = readWhatsAppMessages(older)
-	const finalPage = readWhatsAppMessages(short)
+	const page = decodeWhatsAppMessages(recent)
+	const history = decodeWhatsAppMessages(older)
+	const finalPage = decodeWhatsAppMessages(short)
 	assert.equal(finalPage.items.length, 18)
 	assert.equal(finalPage.hasMore, false)
 	assert.equal(page.hasMore, true)
@@ -62,7 +62,7 @@ test("WhatsApp message pages read chronologically and older history precedes rec
 })
 
 test("WhatsApp messages preserve sender identity, UTF-8 text, outgoing state, media and reaction targets", () => {
-	const { items } = readWhatsAppMessages(recent)
+	const { items } = decodeWhatsAppMessages(recent)
 	assert.deepEqual(
 		items.find(({ id }) => id === "message-51"),
 		{
@@ -87,7 +87,9 @@ test("WhatsApp messages preserve sender identity, UTF-8 text, outgoing state, me
 	assert.equal(reaction.reactionToMessageId, "message-54")
 	assert.ok(items.some(({ id }) => id === reaction.reactionToMessageId))
 	assert.equal(items.find(({ id }) => id === "message-66").mediaType, "image")
-	const sticker = readWhatsAppMessages(older).items.find(({ id }) => id === "message-124")
+	const sticker = decodeWhatsAppMessages(older).items.find(
+		({ id }) => id === "message-124",
+	)
 	assert.equal(sticker.mediaType, "sticker")
 	assert.equal(sticker.text, "")
 	assert.equal(sticker.quotedMessageId, null)

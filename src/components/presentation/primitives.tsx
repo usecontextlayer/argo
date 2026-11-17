@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react"
 import { type ReactNode, useState } from "react"
-import { accounts } from "@/accounts"
+import type { AccountMetadata } from "@/accounts"
 import { type Provider, providers } from "@/provider-identity"
 
 export function ProviderIcon({
@@ -23,29 +23,19 @@ export function ProviderIcon({
 	)
 }
 
-export function AccountIdentity({ account }: { account: string }) {
-	const known = accounts.find((item) => item.id === account)
-	const label = known?.label ?? account
-	const initials =
-		known?.initials ??
-		label
-			.split(/\s+/)
-			.map((part) => part[0])
-			.join("")
-			.slice(0, 2)
-			.toUpperCase()
+export function AccountIdentity({ identity }: { identity: AccountMetadata }) {
 	return (
 		<span
 			className="inline-flex min-w-0 items-center gap-1.5"
-			title={known?.email ?? account}
+			title={identity.email ?? identity.label}
 		>
 			<span
 				className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-foreground"
 				aria-hidden="true"
 			>
-				{initials}
+				{identity.initials}
 			</span>
-			<span>{label}</span>
+			<span>{identity.label}</span>
 		</span>
 	)
 }
@@ -55,7 +45,7 @@ export function SourceIdentity({
 	account,
 }: {
 	provider: Provider
-	account?: string
+	account?: AccountMetadata
 }) {
 	return (
 		<span className="inline-flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -72,7 +62,7 @@ export function SourceIdentity({
 					>
 						·
 					</span>
-					<AccountIdentity account={account} />
+					<AccountIdentity identity={account} />
 				</>
 			)}
 		</span>

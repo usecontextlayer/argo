@@ -1,6 +1,5 @@
 import { getSchema, type JSONContent } from "@tiptap/core"
 import { generateJSON } from "@tiptap/html"
-import { Markdown } from "@tiptap/markdown"
 import StarterKit from "@tiptap/starter-kit"
 import { renderToHTMLString } from "@tiptap/static-renderer/pm/html-string"
 import { Marked } from "marked"
@@ -14,7 +13,6 @@ export const editorExtensions = [
 		link: { markdownLinks: true, openOnClick: false },
 		underline: false,
 	}),
-	Markdown,
 ]
 
 const schema = getSchema(editorExtensions)

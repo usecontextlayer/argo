@@ -3,10 +3,10 @@ import type { ChatDraftStore } from "@/chat-drafts"
 import { documentToText, documentToWhatsApp } from "@/editor"
 import type { McpConnections } from "@/mcp"
 import {
-	readWhatsAppChat,
-	readWhatsAppChats,
-	readWhatsAppContext,
-	readWhatsAppMessages,
+	decodeWhatsAppChat,
+	decodeWhatsAppChats,
+	decodeWhatsAppContext,
+	decodeWhatsAppMessages,
 	type WhatsAppApi,
 	type WhatsAppDraft,
 	whatsappPageSize,
@@ -25,22 +25,22 @@ export function createWhatsAppService(
 
 	return {
 		async chat(id) {
-			return readWhatsAppChat(await call("get_chat", { chat_jid: id }))
+			return decodeWhatsAppChat(await call("get_chat", { chat_jid: id }))
 		},
 		async context(messageId) {
-			return readWhatsAppContext(
+			return decodeWhatsAppContext(
 				await call("get_message_context", { after: 0, before: 0, message_id: messageId }),
 			)
 		},
 		discardDraft: (chatId) => drafts.remove(chatId),
 		draft: (chatId) => drafts.read(chatId),
 		async list(page) {
-			return readWhatsAppChats(
+			return decodeWhatsAppChats(
 				await call("list_chats", { limit: whatsappPageSize, page }),
 			)
 		},
 		async messages(chatId, page) {
-			return readWhatsAppMessages(
+			return decodeWhatsAppMessages(
 				await call("list_messages", {
 					chat_jid: chatId,
 					include_context: false,

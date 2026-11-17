@@ -1,13 +1,13 @@
 import type { LoaderFunctionArgs } from "react-router"
 import type { CalendarEvent } from "@/calendar"
-import { type SourceReference, sourceReferenceSchema } from "@/doables"
 import {
+	decodeGranolaMeetings,
 	type GranolaMeeting,
 	type GranolaTranscript,
-	readGranolaMeetings,
 } from "@/granola"
 import type { IMessageChat, IMessageMessage } from "@/imessage"
 import type { MailThread } from "@/mail"
+import { type SourceReference, sourceReferenceSchema } from "@/source-reference"
 import type { TeamsChat, TeamsMessage } from "@/teams"
 import type { WhatsAppChat, WhatsAppMessage } from "@/whatsapp"
 import type { WorkflowyPage } from "@/workflowy"
@@ -68,7 +68,7 @@ export async function loadSourceItem(
 			}
 		}
 		case "granola": {
-			const [meeting] = readGranolaMeetings(
+			const [meeting] = decodeGranolaMeetings(
 				await window.granola.meeting(reference.meetingId),
 			)
 			if (!meeting) throw new Error("The referenced meeting could not be found.")

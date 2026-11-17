@@ -1,7 +1,8 @@
+import { watch } from "node:fs"
 import path from "node:path"
 import { app, BrowserWindow, ipcMain } from "electron"
 import started from "electron-squirrel-startup"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import type { CalendarEvent, CalendarResponse } from "@/calendar"
 import { listCalendar, refreshCalendar, respondCalendar } from "@/calendar-service"
 import {
@@ -10,7 +11,9 @@ import {
 	teamsDraftSchema,
 	whatsAppDraftSchema,
 } from "@/chat-drafts"
+import { ClaudeProcess } from "@/claude-process"
 import { listDoables } from "@/doables-service"
+import { registerExternalLinks } from "@/external-links"
 import {
 	listGranolaMeetings,
 	readGranolaMeeting,
@@ -44,6 +47,7 @@ import {
 	readTeamsMessages,
 	refreshTeams,
 } from "@/teams-service"
+import type { TerminalSize } from "@/terminal"
 import type { WhatsAppDraft } from "@/whatsapp"
 import { createWhatsAppService } from "@/whatsapp-service"
 import { createWorkflowyService } from "@/workflowy-service"
@@ -55,24 +59,34 @@ const whatsapp = createWhatsAppService(
 	mcp,
 	createChatDraftStore(
 		draftDirectory,
-		`whatsapp/${singleConnectionAccounts.whatsapp}`,
+		`whatsapp/${sourceAccounts.whatsapp.id}`,
 		whatsAppDraftSchema,
 	),
 )
 const teamsDrafts = createTeamsDraftService(
 	createChatDraftStore(
 		draftDirectory,
-		`teams/${singleConnectionAccounts.teams}`,
+		`teams/${sourceAccounts.teams.id}`,
 		teamsDraftSchema,
 	),
 )
 const imessageDrafts = createIMessageDraftService(
 	createChatDraftStore(
 		draftDirectory,
-		`imessage/${singleConnectionAccounts.imessage}`,
+		`imessage/${sourceAccounts.imessage.id}`,
 		iMessageDraftSchema,
 	),
 )
+const claude = new ClaudeProcess(app.getAppPath())
+claude.on("data", (data) => {
+	for (const window of BrowserWindow.getAllWindows())
+		window.webContents.send("terminal:data", data)
+})
+claude.on("exit", (code) => {
+	for (const window of BrowserWindow.getAllWindows())
+		window.webContents.send("terminal:exit", code)
+})
+
 if (started) {
 	app.quit()
 }
@@ -87,6 +101,7 @@ const createWindow = () => {
 		},
 		width: 1440,
 	})
+	registerExternalLinks(mainWindow.webContents)
 
 	if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
 		mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL)
@@ -98,6 +113,18 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
+	ipcMain.handle("terminal:open", (_event, size: TerminalSize) => claude.open(size))
+	ipcMain.on("terminal:input", (_event, data: string) => claude.input(data))
+	ipcMain.on("terminal:resize", (_event, size: TerminalSize) => claude.resize(size))
+	const doableWatcher = watch(
+		path.join(app.getAppPath(), "data/doables"),
+		(_event, filename) => {
+			if (!filename?.endsWith(".json")) return
+			for (const window of BrowserWindow.getAllWindows())
+				window.webContents.send("doables:changed")
+		},
+	)
+	app.once("will-quit", () => doableWatcher.close())
 	if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
 		app.dock?.setIcon(path.join(app.getAppPath(), "assets/argo-icon.png"))
 	}
@@ -198,6 +225,8 @@ app.whenReady().then(() => {
 		}
 	})
 })
+
+app.on("before-quit", () => claude.close())
 
 app.on("will-quit", () => {
 	void mcp.close()

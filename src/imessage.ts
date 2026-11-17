@@ -121,11 +121,11 @@ export function parseIMessageJson(output: string): unknown[] {
 		.map((line) => JSON.parse(line))
 }
 
-export function readIMessageChats(source: unknown): IMessageChat[] {
+export function decodeIMessageChats(source: unknown): IMessageChat[] {
 	return z.array(chatSchema).parse(source)
 }
 
-export function readIMessageMessages(source: unknown): IMessageMessage[] {
+export function decodeIMessageMessages(source: unknown): IMessageMessage[] {
 	return z
 		.array(messageSchema)
 		.parse(source)

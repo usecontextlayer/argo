@@ -5,6 +5,7 @@ import type { GranolaApi } from "@/granola"
 import type { IMessageApi, IMessageDraft } from "@/imessage"
 import type { MailApi, MailDraft, ReplyMode } from "@/mail"
 import type { TeamsApi, TeamsDraft } from "@/teams"
+import type { TerminalApi, TerminalSize } from "@/terminal"
 import type { WhatsAppApi, WhatsAppDraft } from "@/whatsapp"
 import type { WorkflowyApi } from "@/workflowy"
 
@@ -85,4 +86,25 @@ contextBridge.exposeInMainWorld("workflowy", {
 
 contextBridge.exposeInMainWorld("doables", {
 	list: () => ipcRenderer.invoke("doables:list"),
+	onChange: (listener) => {
+		const handler = () => listener()
+		ipcRenderer.on("doables:changed", handler)
+		return () => ipcRenderer.removeListener("doables:changed", handler)
+	},
 } satisfies DoablesApi)
+
+contextBridge.exposeInMainWorld("terminal", {
+	input: (data: string) => ipcRenderer.send("terminal:input", data),
+	onData: (listener) => {
+		const handler = (_event: Electron.IpcRendererEvent, data: string) => listener(data)
+		ipcRenderer.on("terminal:data", handler)
+		return () => ipcRenderer.removeListener("terminal:data", handler)
+	},
+	onExit: (listener) => {
+		const handler = (_event: Electron.IpcRendererEvent, code: number) => listener(code)
+		ipcRenderer.on("terminal:exit", handler)
+		return () => ipcRenderer.removeListener("terminal:exit", handler)
+	},
+	open: (size: TerminalSize) => ipcRenderer.invoke("terminal:open", size),
+	resize: (size: TerminalSize) => ipcRenderer.send("terminal:resize", size),
+} satisfies TerminalApi)

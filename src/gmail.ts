@@ -20,11 +20,11 @@ export type GmailThread = {
 	}[]
 }
 
-export function gmailHeader(part: GmailPart, name: string) {
+function gmailHeader(part: GmailPart, name: string) {
 	return part.headers?.find((value) => value.name.toLowerCase() === name)?.value ?? ""
 }
 
-export function parseMailAddresses(value: string): MailAddress[] {
+function parseMailAddresses(value: string): MailAddress[] {
 	return addressParser(value, { flatten: true }).map(({ address, name }) => ({
 		address,
 		...(name ? { name } : {}),
@@ -41,7 +41,7 @@ function body(part: GmailPart, mimeType: string): string {
 		.join("\n")
 }
 
-export function readGmailThread(thread: GmailThread): MailThread {
+export function decodeGmailThread(thread: GmailThread): MailThread {
 	const messages = thread.messages
 		.filter((message) => !message.labelIds.includes("DRAFT"))
 		.sort((a, b) => Number(a.internalDate) - Number(b.internalDate))

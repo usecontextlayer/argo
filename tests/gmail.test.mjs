@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
-import { readGmailThread } from "../src/gmail.ts"
+import { decodeGmailThread } from "../src/gmail.ts"
 
 // MIME structure recorded from a real Composio GMAIL_LIST_THREADS read on
 // 2026-11-16. record-gmail.mjs replaces all correspondence with owned test text.
@@ -23,7 +23,7 @@ test("a conversation presents chronological messages with decoded multipart bodi
 		)
 	}
 
-	assert.deepEqual(readGmailThread(source), {
+	assert.deepEqual(decodeGmailThread(source), {
 		date: 1700000060000,
 		id: "conversation",
 		messages: [

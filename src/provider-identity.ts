@@ -1,5 +1,5 @@
 import { getAccount } from "@/accounts"
-import type { SourceReference } from "@/doables"
+import type { SourceReference } from "@/source-reference"
 
 export const providers = {
 	argo: { icon: new URL("../assets/argo-icon.png", import.meta.url).href, name: "Argo" },

@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { DraftComposer } from "@/components/draft-composer"
 import { Button } from "@/components/ui/button"
 import { documentToText, emptyDocument, htmlToDocument } from "@/editor"
@@ -40,7 +40,7 @@ function QuotedReply({
 
 export function useWhatsAppReply(chatId: string) {
 	const binding = useDraft<WhatsAppDraft>(
-		["whatsapp", singleConnectionAccounts.whatsapp, chatId],
+		["whatsapp", sourceAccounts.whatsapp.id, chatId],
 		{
 			discard: () => window.whatsapp.discardDraft(chatId),
 			empty: () => ({ body: emptyDocument() }),
@@ -67,15 +67,13 @@ export function useWhatsAppReply(chatId: string) {
 
 export function WhatsAppReply({
 	binding,
-	sendOnEnter = true,
 }: {
 	binding: ReturnType<typeof useWhatsAppReply>["binding"]
-	sendOnEnter?: boolean
 }) {
 	return (
 		<DraftComposer
 			binding={binding}
-			sendOnEnter={sendOnEnter}
+			sendOnEnter
 		>
 			{binding.draft?.replyTo && (
 				<QuotedReply
@@ -89,16 +87,13 @@ export function WhatsAppReply({
 }
 
 export function useTeamsReply(chatId: string) {
-	const binding = useDraft<TeamsDraft>(
-		["teams", singleConnectionAccounts.teams, chatId],
-		{
-			discard: () => window.teams.discardDraft(chatId),
-			empty: () => ({ body: emptyDocument() }),
-			load: () => window.teams.draft(chatId),
-			save: (draft) => window.teams.saveDraft(chatId, draft),
-			send: () => window.teams.sendDraft(chatId),
-		},
-	)
+	const binding = useDraft<TeamsDraft>(["teams", sourceAccounts.teams.id, chatId], {
+		discard: () => window.teams.discardDraft(chatId),
+		empty: () => ({ body: emptyDocument() }),
+		load: () => window.teams.draft(chatId),
+		save: (draft) => window.teams.saveDraft(chatId, draft),
+		send: () => window.teams.sendDraft(chatId),
+	})
 	return {
 		binding,
 		reply(message: TeamsMessage) {
@@ -116,15 +111,13 @@ export function useTeamsReply(chatId: string) {
 
 export function TeamsReply({
 	binding,
-	sendOnEnter = true,
 }: {
 	binding: ReturnType<typeof useTeamsReply>["binding"]
-	sendOnEnter?: boolean
 }) {
 	return (
 		<DraftComposer
 			binding={binding}
-			sendOnEnter={sendOnEnter}
+			sendOnEnter
 		>
 			{binding.draft?.replyTo && (
 				<QuotedReply
@@ -137,15 +130,9 @@ export function TeamsReply({
 	)
 }
 
-export function IMessageReply({
-	chatId,
-	sendOnEnter = true,
-}: {
-	chatId: number
-	sendOnEnter?: boolean
-}) {
+export function IMessageReply({ chatId }: { chatId: number }) {
 	const binding = useDraft<IMessageDraft>(
-		["imessage", singleConnectionAccounts.imessage, chatId],
+		["imessage", sourceAccounts.imessage.id, chatId],
 		{
 			discard: () => window.imessage.discardDraft(chatId),
 			empty: () => ({ body: emptyDocument() }),
@@ -157,7 +144,7 @@ export function IMessageReply({
 	return (
 		<DraftComposer
 			binding={binding}
-			sendOnEnter={sendOnEnter}
+			sendOnEnter
 		/>
 	)
 }

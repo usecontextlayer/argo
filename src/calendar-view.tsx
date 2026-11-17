@@ -5,7 +5,6 @@ import {
 	useLoaderData,
 	useNavigation,
 	useRevalidator,
-	useRouteError,
 	useSearchParams,
 } from "react-router"
 import { getAccount } from "@/accounts"
@@ -18,12 +17,13 @@ import {
 	scheduleDate,
 	scheduleDays,
 } from "@/components/presentation/schedule-dates"
+import { SourceError } from "@/components/source-error"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { accountProvider } from "@/provider-identity"
 
-export function currentMonth() {
+function currentMonth() {
 	return civilDay(new Date()).slice(0, 7)
 }
 
@@ -135,7 +135,7 @@ export function CalendarView() {
 						<h1 className="text-xl font-semibold tracking-tight">{title}</h1>
 						<SourceIdentity
 							provider={accountProvider(account, "calendar")}
-							account={account}
+							account={getAccount(account)}
 						/>
 						<p className="text-xs text-muted-foreground">
 							All calendars · {timeZone.replaceAll("_", " ")}
@@ -260,17 +260,10 @@ export function LoadingCalendar() {
 }
 
 export function CalendarError() {
-	const error = useRouteError()
 	return (
-		<main
-			className="flex min-h-full flex-1 flex-col items-center justify-center gap-4 p-12 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">Calendar couldn’t load.</h2>
-			<p className="text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The calendar request failed."}
-			</p>
-			<Button onClick={() => window.location.reload()}>Try again</Button>
-		</main>
+		<SourceError
+			title="Calendar couldn’t load."
+			fallback="The calendar request failed."
+		/>
 	)
 }

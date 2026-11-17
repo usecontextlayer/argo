@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import test from "node:test"
-import { readWorkflowyNodes } from "../src/workflowy.ts"
+import { decodeWorkflowyNodes } from "../src/workflowy.ts"
 
 const source = await readFile(
 	new URL("fixtures/workflowy-nodes.txt", import.meta.url),
@@ -9,7 +9,7 @@ const source = await readFile(
 )
 
 test("Workflowy nodes retain hierarchy, text, identity, and child counts", () => {
-	assert.deepEqual(readWorkflowyNodes(source), [
+	assert.deepEqual(decodeWorkflowyNodes(source), [
 		{ children: 1, depth: 0, format: "bullets", id: "root", text: "Test home" },
 		{
 			children: 2,

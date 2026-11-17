@@ -4,7 +4,8 @@ import { z } from "zod"
 import type { ChatDraftStore } from "@/chat-drafts"
 import { documentToText } from "@/editor"
 import {
-	readIMessageMessages as decodeMessages,
+	decodeIMessageChats,
+	decodeIMessageMessages,
 	type IMessageApi,
 	type IMessageChat,
 	type IMessageDraft,
@@ -12,7 +13,6 @@ import {
 	type IMessagePage,
 	imessagePageSize,
 	parseIMessageJson,
-	readIMessageChats,
 } from "@/imessage"
 
 const executeFile = promisify(execFile)
@@ -29,7 +29,7 @@ export async function listIMessageChats(
 	limit: number,
 ): Promise<IMessagePage<IMessageChat>> {
 	positiveInteger.parse(limit)
-	const items = readIMessageChats(await read(["chats", "--limit", String(limit)]))
+	const items = decodeIMessageChats(await read(["chats", "--limit", String(limit)]))
 	return { hasMore: items.length === limit, items, limit }
 }
 
@@ -53,7 +53,7 @@ export async function readIMessageMessages(
 	positiveInteger.parse(chatId)
 	positiveInteger.parse(limit)
 	while (true) {
-		const items = decodeMessages(
+		const items = decodeIMessageMessages(
 			await read(["history", "--chat-id", String(chatId), "--limit", String(limit)]),
 		)
 		const hasMore = items.length === limit

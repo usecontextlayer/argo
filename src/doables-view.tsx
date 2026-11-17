@@ -1,10 +1,6 @@
-import {
-	useLoaderData,
-	useRevalidator,
-	useRouteError,
-	useSearchParams,
-} from "react-router"
+import { useLoaderData, useRevalidator, useSearchParams } from "react-router"
 import { Preview, ProviderIcon } from "@/components/presentation/primitives"
+import { SourceError } from "@/components/source-error"
 import {
 	Accordion,
 	AccordionContent,
@@ -89,7 +85,6 @@ export function DoablesView() {
 				{doables.length === 0 && (
 					<p className="py-6 text-sm text-muted-foreground">
 						Doables will appear here when the novelty agent finds work in your sources.
-						Refresh to load its results.
 					</p>
 				)}
 			</div>
@@ -112,18 +107,10 @@ export function LoadingDoables() {
 }
 
 export function DoablesError() {
-	const error = useRouteError()
-	const revalidator = useRevalidator()
 	return (
-		<main
-			className="flex min-h-full flex-1 flex-col items-center justify-center gap-4 p-6 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">Doables couldn’t load.</h2>
-			<p className="text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The doable files could not be read."}
-			</p>
-			<Button onClick={() => revalidator.revalidate()}>Try again</Button>
-		</main>
+		<SourceError
+			title="Doables couldn’t load."
+			fallback="The doable files could not be read."
+		/>
 	)
 }

@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { getAccount } from "@/accounts"
+import { memoize } from "@/cache"
 import {
 	type CalendarEvent,
 	type CalendarPage,
@@ -7,7 +8,7 @@ import {
 	calendarResponseSchema,
 	invitationResponse,
 } from "@/calendar"
-import { execute, memoize } from "@/composio"
+import { execute } from "@/composio"
 import { listOutlookCalendar } from "@/outlook"
 
 const months = new Map<string, Promise<CalendarPage>>()

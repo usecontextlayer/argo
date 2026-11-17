@@ -1,3 +1,10 @@
+export type AccountMetadata = {
+	id: string
+	label: string
+	initials: string
+	email?: string
+}
+
 export const accounts = [
 	{
 		calendar: "googlecalendar_phenin-marrot",
@@ -52,10 +59,12 @@ export function getAccount(id: string) {
 	return account
 }
 
-export const singleConnectionAccounts = {
-	granola: "feerasta",
-	imessage: "Personal",
-	teams: "codecreators",
-	whatsapp: "Personal",
-	workflowy: "Personal",
+const personalAccount = { id: "Personal", initials: "P", label: "Personal" } as const
+
+export const sourceAccounts = {
+	granola: getAccount("feerasta"),
+	imessage: personalAccount,
+	teams: getAccount("codecreators"),
+	whatsapp: personalAccount,
+	workflowy: personalAccount,
 } as const

@@ -5,12 +5,12 @@ import {
 	useLoaderData,
 	useNavigation,
 	useRevalidator,
-	useRouteError,
 	useSearchParams,
 } from "react-router"
-import { singleConnectionAccounts } from "@/accounts"
+import { sourceAccounts } from "@/accounts"
 import { IMessageDocument } from "@/components/presentation/chat"
 import { Preview, SourceIdentity, Timestamp } from "@/components/presentation/primitives"
+import { SourceError } from "@/components/source-error"
 import { Button } from "@/components/ui/button"
 import {
 	type IMessageChat,
@@ -71,7 +71,7 @@ export function IMessageView() {
 						<h1 className="mb-2 text-lg font-semibold">Chats</h1>
 						<SourceIdentity
 							provider="imessage"
-							account={singleConnectionAccounts.imessage}
+							account={sourceAccounts.imessage}
 						/>
 					</div>
 					<Button
@@ -117,7 +117,7 @@ export function IMessageView() {
 								identity={
 									<SourceIdentity
 										provider="imessage"
-										account={singleConnectionAccounts.imessage}
+										account={sourceAccounts.imessage}
 									/>
 								}
 							>
@@ -231,17 +231,10 @@ export function LoadingIMessage() {
 }
 
 export function IMessageError() {
-	const error = useRouteError()
 	return (
-		<main
-			className="flex min-h-full w-full flex-col items-center justify-center gap-4 p-10 text-center"
-			role="alert"
-		>
-			<h2 className="text-xl font-semibold">iMessage couldn’t load.</h2>
-			<p className="max-w-prose text-sm text-muted-foreground">
-				{error instanceof Error ? error.message : "The iMessage read failed."}
-			</p>
-			<Button onClick={() => window.location.reload()}>Try again</Button>
-		</main>
+		<SourceError
+			title="iMessage couldn’t load."
+			fallback="The iMessage read failed."
+		/>
 	)
 }
